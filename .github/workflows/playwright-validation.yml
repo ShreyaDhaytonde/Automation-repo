@@ -1,0 +1,347 @@
+name: Playwright Validation
+
+on:
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: Automation branch holding the generated specs
+        required: true
+        type: string
+      commit_sha:
+        description: Exact automation commit to check out (tests)
+        required: true
+        type: string
+      source_repo:
+        description: Frontend repository, as owner/repo (the app under test)
+        required: true
+        type: string
+      source_commit:
+        description: Exact frontend commit the tests were generated from
+        required: true
+        type: string
+      backend_repo:
+        description: Backend repository as owner/repo. Empty means use the BACKEND_URL secret instead of starting one.
+        required: false
+        default: ""
+        type: string
+      backend_ref:
+        description: Backend branch or commit to run. Defaults to its default branch.
+        required: false
+        default: ""
+        type: string
+
+concurrency:
+  group: playwright-validation-${{ inputs.branch }}
+  cancel-in-progress: true
+
+env:
+  FRONTEND_PORT: "3000"
+  FRONTEND_URL: http://127.0.0.1:3000
+  BACKEND_URL: ${{ secrets.BACKEND_URL || 'http://127.0.0.1:8000' }}
+  BACKEND_PORT: "8000"
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout generated tests (this repo, exact commit)
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.commit_sha }}
+          path: automation
+
+      - name: Checkout application under test (frontend, exact commit)
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ inputs.source_repo }}
+          ref: ${{ inputs.source_commit }}
+          path: frontend
+          token: ${{ secrets.FRONTEND_REPO_TOKEN || github.token }}
+
+      - name: Checkout backend
+        if: inputs.backend_repo != ''
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ inputs.backend_repo }}
+          ref: ${{ inputs.backend_ref || '' }}
+          path: backend
+          token: ${{ secrets.BACKEND_REPO_TOKEN || secrets.FRONTEND_REPO_TOKEN || github.token }}
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: |
+            frontend/package-lock.json
+            automation/package-lock.json
+
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: |
+          if [ -f package-lock.json ]; then
+            npm ci
+          else
+            npm install
+          fi
+
+      - name: Setup Python for backend
+        if: inputs.backend_repo != ''
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: backend/requirements.txt
+
+      - name: Install backend dependencies
+        if: inputs.backend_repo != ''
+        working-directory: backend
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f requirements.txt ]; then
+            pip install -r requirements.txt
+          elif [ -f pyproject.toml ]; then
+            pip install .
+          else
+            echo "::error title=No backend manifest::neither requirements.txt nor pyproject.toml found"
+            exit 1
+          fi
+
+      - name: Start backend
+        if: inputs.backend_repo != ''
+        working-directory: backend
+        env:
+          PORT: "8000"
+          CORS_ORIGINS: '["http://127.0.0.1:3000","http://localhost:3000"]'
+        run: |
+          entry=""
+          for candidate in app.main:app main:app app:app src.main:app; do
+            module="${candidate%%:*}"
+            path="$(echo "$module" | tr '.' '/').py"
+            if [ -f "$path" ]; then entry="$candidate"; break; fi
+          done
+          if [ -z "$entry" ]; then
+            echo "::error title=No ASGI entrypoint::looked for app/main.py, main.py, app.py, src/main.py"
+            exit 1
+          fi
+          echo "Starting uvicorn $entry on 8000"
+          nohup python -m uvicorn "$entry" --host 127.0.0.1 --port 8000 \
+            > "$GITHUB_WORKSPACE/backend.log" 2>&1 &
+          echo $! > "$GITHUB_WORKSPACE/backend.pid"
+
+      - name: Install test dependencies
+        working-directory: automation
+        run: |
+          if [ -f package-lock.json ]; then
+            npm ci
+          else
+            npm install
+          fi
+          npm install --no-save @playwright/test allure-playwright
+
+      - name: Install Playwright browsers
+        working-directory: automation
+        run: npx playwright install --with-deps chromium
+
+      - name: Backend health check
+        env:
+          BACKEND_HEALTH_PATH: ${{ vars.BACKEND_HEALTH_PATH || '/health' }}
+        run: |
+          target="${BACKEND_URL%/}${BACKEND_HEALTH_PATH}"
+          echo "Probing backend at $target"
+          for attempt in $(seq 1 30); do
+            code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 10 "$target" || echo 000)
+            if [ "$code" != "000" ] && [ "$code" -lt 500 ]; then
+              echo "Backend reachable (HTTP $code)"
+              exit 0
+            fi
+            echo "  attempt $attempt: HTTP $code"
+            sleep 2
+          done
+          echo "::error title=Backend unreachable::$target did not respond in 60s"
+          if [ -f "$GITHUB_WORKSPACE/backend.log" ]; then
+            echo "--- last 60 lines of backend log ---"
+            tail -n 60 "$GITHUB_WORKSPACE/backend.log"
+          fi
+          exit 1
+
+      - name: Start frontend (npm run dev on 3000)
+        working-directory: frontend
+        env:
+          PORT: "3000"
+          NEXT_PUBLIC_API_URL: ${{ env.BACKEND_URL }}
+          VITE_API_URL: ${{ env.BACKEND_URL }}
+          API_URL: ${{ env.BACKEND_URL }}
+        run: |
+          npm run dev > "$GITHUB_WORKSPACE/frontend-dev.log" 2>&1 &
+          echo $! > "$GITHUB_WORKSPACE/frontend.pid"
+
+      - name: Wait for frontend
+        run: |
+          for attempt in $(seq 1 60); do
+            code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 5 "$FRONTEND_URL" || echo 000)
+            if [ "$code" != "000" ] && [ "$code" -lt 500 ]; then
+              echo "Frontend answering (HTTP $code) after ${attempt}s"
+              curl -s -o /dev/null --max-time 60 "$FRONTEND_URL" || true
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "::error title=Frontend never started::no answer from $FRONTEND_URL in 120s"
+          echo "--- last 100 lines of dev server log ---"
+          tail -n 100 "$GITHUB_WORKSPACE/frontend-dev.log" || true
+          exit 1
+
+      - name: Configure test authentication
+        run: echo "No authentication configured - app under test is open."
+
+      - name: Run generated Playwright tests
+        id: tests
+        continue-on-error: true
+        working-directory: automation
+        env:
+          PLAYWRIGHT_BASE_URL: ${{ env.FRONTEND_URL }}
+          PLAYWRIGHT_JSON_OUTPUT_NAME: ../results/results.json
+          CI: "true"
+        run: |
+          mkdir -p ../results
+          npx playwright test \
+            --reporter=line,json,allure-playwright \
+            --output=../results/artifacts
+
+      - name: Collect results
+        id: collect
+        run: |
+          json=results/results.json
+          if [ ! -f "$json" ]; then
+            echo "::error title=No results::Playwright produced no JSON report"
+            echo "outcome=error" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          node -e '
+            const r = require("./results/results.json");
+            let passed = 0, failed = 0, skipped = 0, flaky = 0;
+            const walk = (suites = []) => {
+              for (const s of suites) {
+                for (const spec of s.specs || []) {
+                  for (const t of spec.tests || []) {
+                    const st = t.status || t.results?.[0]?.status;
+                    if (t.status === "flaky") flaky++;
+                    else if (st === "expected" || st === "passed") passed++;
+                    else if (st === "skipped") skipped++;
+                    else failed++;
+                  }
+                }
+                walk(s.suites);
+              }
+            };
+            walk(r.suites);
+            const total = passed + failed + skipped + flaky;
+            const out = { total, passed, failed, skipped, flaky };
+            console.log(JSON.stringify(out));
+            require("fs").writeFileSync("results/summary.json", JSON.stringify(out, null, 2));
+          ' | tee results/summary-line.txt
+          echo "outcome=${{ steps.tests.outcome }}" >> "$GITHUB_OUTPUT"
+
+      - name: Stop servers
+        if: always()
+        run: |
+          for pidfile in frontend.pid backend.pid; do
+            if [ -f "$GITHUB_WORKSPACE/$pidfile" ]; then
+              kill "$(cat "$GITHUB_WORKSPACE/$pidfile")" 2>/dev/null || true
+            fi
+          done
+
+      - name: Generate Allure report
+        if: always()
+        working-directory: automation
+        run: |
+          if [ -d allure-results ]; then
+            npx --yes allure-commandline generate allure-results \
+              --clean -o ../results/allure-report
+          else
+            echo "No allure-results directory - skipping report generation."
+          fi
+
+      - name: Setup Python
+        if: always()
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Analyse results and route
+        if: always()
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          OPENAI_MODEL: ${{ vars.OPENAI_MODEL || 'gpt-4.1-mini' }}
+          VALIDATION_NOTIFY_URL: ${{ secrets.VALIDATION_NOTIFY_URL }}
+          VALIDATION_NOTIFY_TOKEN: ${{ secrets.VALIDATION_NOTIFY_TOKEN }}
+          VALIDATION_BRANCH: ${{ inputs.branch }}
+          VALIDATION_COMMIT_SHA: ${{ inputs.commit_sha }}
+          VALIDATION_SOURCE_REPO: ${{ inputs.source_repo }}
+          VALIDATION_SOURCE_COMMIT: ${{ inputs.source_commit }}
+          VALIDATION_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          if [ -n "$OPENAI_API_KEY" ]; then
+            pip install --quiet openai
+          fi
+          python automation/scripts/validation_report.py \
+            --results results/results.json \
+            --out results/validation-report.json \
+            --threshold 80
+
+      - name: Add report to run summary
+        if: always()
+        run: |
+          report=results/validation-report.json
+          [ -f "$report" ] || exit 0
+          python - <<'PY' >> "$GITHUB_STEP_SUMMARY"
+          import json
+          r = json.load(open("results/validation-report.json"))
+          print(f"### Validation: {r['verdict'].upper()}  (confidence {r['confidence']})")
+          print()
+          print(f"- {r['passed']}/{r['total']} passed, {r['failed']} failed, "
+                f"{r['flaky']} flaky, {r['skipped']} skipped")
+          print(f"- confidence: {r['confidence']} - {r['confidence_reason']}")
+          print(f"- notified: {r['notified']}")
+          if r["counts_by_category"]:
+              print()
+              print("| cause | count |")
+              print("|---|---|")
+              for cause, count in sorted(r["counts_by_category"].items()):
+                  print(f"| {cause.replace('_',' ')} | {count} |")
+          if r["failures"]:
+              print()
+              print("| test | cause | why |")
+              print("|---|---|---|")
+              for f in r["failures"][:20]:
+                  print(f"| {f['title']} | {f['category'].replace('_',' ')} | {f['reason']} |")
+          print()
+          print(r["summary"])
+          PY
+
+      - name: Upload validation artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: validation-${{ inputs.branch }}
+          path: |
+            results/
+            frontend-dev.log
+            backend.log
+            automation/allure-results
+          retention-days: 14
+
+      - name: Report suite outcome
+        if: always()
+        run: |
+          echo "### Playwright validation" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "- branch: \`${{ inputs.branch }}\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "- app commit: \`${{ inputs.source_commit }}\`" >> "$GITHUB_STEP_SUMMARY"
+          if [ -f results/summary-line.txt ]; then
+            echo "- results: \`$(cat results/summary-line.txt)\`" >> "$GITHUB_STEP_SUMMARY"
+          fi
+          echo "- suite: ${{ steps.tests.outcome }}" >> "$GITHUB_STEP_SUMMARY"
