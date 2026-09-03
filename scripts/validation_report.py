@@ -70,6 +70,14 @@ DEVELOPER_SIGNALS = (
     "toBeChecked",
 )
 
+OBSERVED_VALUE_MARKERS = (
+    "Received",
+    "Actual:",
+    "Received string",
+    "Received array",
+    "Received number",
+)
+
 DEVELOPER_BUG = "developer_bug"
 TEST_BUG = "test_bug"
 INFRA_BUG = "infra_bug"
@@ -107,9 +115,15 @@ def classify(error: str) -> tuple[str, str]:
     when the app or backend is unreachable EVERY other signal is noise -- a
     locator "not found" on a page that never loaded says nothing about the
     locator. Test-authoring faults come next since they are textually
-    distinctive. Assertion mismatches are checked last, because by then we
-    know the page loaded and the locator resolved, which is exactly what makes
-    a value mismatch meaningful.
+    distinctive.
+
+    An assertion mismatch is only credible once the element was actually
+    found and read. Playwright prints the matcher name in its timeout text
+    too ("Timed out 5000ms waiting for expect(locator).toBeDisabled()"), so
+    matching on the matcher name alone reports a locator that never resolved
+    as an application bug -- and sends a developer looking for a defect that
+    the run never observed. A real mismatch carries the value that was read
+    back, so that is what decides it.
     """
     haystack = error or ""
 
@@ -121,13 +135,19 @@ def classify(error: str) -> tuple[str, str]:
         if signal in haystack:
             return TEST_BUG, f"test authoring problem: matched {signal!r}"
 
-    for signal in DEVELOPER_SIGNALS:
-        if signal in haystack:
-            return DEVELOPER_BUG, f"application behaved differently: matched {signal!r}"
+    observed_a_value = any(marker in haystack for marker in OBSERVED_VALUE_MARKERS)
+    if observed_a_value:
+        for signal in DEVELOPER_SIGNALS:
+            if signal in haystack:
+                return DEVELOPER_BUG, f"application behaved differently: matched {signal!r}"
 
     lowered = haystack.lower()
     if "timeout" in lowered or "timed out" in lowered:
         return TEST_BUG, "timed out waiting for a locator - selector or missing feature"
+
+    for signal in DEVELOPER_SIGNALS:
+        if signal in haystack:
+            return DEVELOPER_BUG, f"application behaved differently: matched {signal!r}"
 
     return TEST_BUG, "unrecognized failure - triage manually"
 
