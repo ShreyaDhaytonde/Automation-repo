@@ -46,6 +46,12 @@ jobs:
     timeout-minutes: 30
 
     steps:
+      - name: Name this run's artifact
+        id: slug
+        env:
+          BRANCH: ${{ inputs.branch }}
+        run: echo "artifact=validation-${BRANCH//\//-}" >> "$GITHUB_OUTPUT"
+
       - name: Checkout generated tests (this repo, exact commit)
         uses: actions/checkout@v4
         with:
@@ -326,7 +332,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: validation-${{ inputs.branch }}
+          name: ${{ steps.slug.outputs.artifact }}
           path: |
             results/
             frontend-dev.log
