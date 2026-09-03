@@ -36,8 +36,8 @@ concurrency:
 
 env:
   FRONTEND_PORT: "3000"
-  FRONTEND_URL: http://127.0.0.1:3000
-  BACKEND_URL: ${{ secrets.BACKEND_URL || 'http://127.0.0.1:8000' }}
+  FRONTEND_URL: http://localhost:3000
+  BACKEND_URL: ${{ secrets.BACKEND_URL || 'http://localhost:8000' }}
   BACKEND_PORT: "8000"
 
 jobs:
@@ -133,7 +133,7 @@ jobs:
             exit 1
           fi
           echo "Starting uvicorn $entry on 8000"
-          nohup python -m uvicorn "$entry" --host 127.0.0.1 --port 8000 \
+          nohup python -m uvicorn "$entry" --host 0.0.0.0 --port 8000 \
             > "$GITHUB_WORKSPACE/backend.log" 2>&1 &
           echo $! > "$GITHUB_WORKSPACE/backend.pid"
 
@@ -199,6 +199,21 @@ jobs:
           echo "--- last 100 lines of dev server log ---"
           tail -n 100 "$GITHUB_WORKSPACE/frontend-dev.log" || true
           exit 1
+
+      - name: Check the app actually served its client bundle
+        run: |
+          log="$GITHUB_WORKSPACE/frontend-dev.log"
+          [ -f "$log" ] || exit 0
+          if grep -q "Blocked cross-origin request" "$log"; then
+            echo "::error title=Client bundle blocked::The dev server refused to serve"\
+              "its own JavaScript to the browser's origin, so the app never hydrated."\
+              "Every interactive element would be missing and all tests would time out"\
+              "waiting for elements that cannot exist. Add allowedDevOrigins to"\
+              "next.config.js, or serve a production build instead of the dev server."
+            grep -n "Blocked cross-origin request" "$log" | head -n 5
+            exit 1
+          fi
+          echo "No blocked dev resources - the browser can load the app's JavaScript."
 
       - name: Configure test authentication
         run: echo "No authentication configured - app under test is open."
