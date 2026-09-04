@@ -158,9 +158,8 @@ jobs:
           target="${BACKEND_URL%/}${BACKEND_HEALTH_PATH}"
           echo "Probing backend at $target"
           for attempt in $(seq 1 30); do
-            code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 10 "$target")
-            curl_status=$?
-            if [ $curl_status -ne 0 ] || ! [[ "$code" =~ ^[0-9]{3}$ ]]; then
+            code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 10 "$target" || true)
+            if ! [[ "$code" =~ ^[0-9]{3}$ ]]; then
               code="000"
             fi
             if [ "$code" != "000" ] && [ "$code" -lt 500 ]; then
@@ -191,9 +190,8 @@ jobs:
       - name: Wait for frontend
         run: |
           for attempt in $(seq 1 60); do
-            code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 5 "$FRONTEND_URL")
-            curl_status=$?
-            if [ $curl_status -ne 0 ] || ! [[ "$code" =~ ^[0-9]{3}$ ]]; then
+            code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 5 "$FRONTEND_URL" || true)
+            if ! [[ "$code" =~ ^[0-9]{3}$ ]]; then
               code="000"
             fi
             if [ "$code" != "000" ] && [ "$code" -lt 500 ]; then
