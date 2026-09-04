@@ -69,7 +69,7 @@ test.describe('Home', () => {
     await editNameInput.fill(newName);
     await editCategorySelect.selectOption("Health");
     await editTimesSelect.selectOption("5");
-    await page.getByRole("button", { name: "Save" }).click();
+    await page.getByRole("button", { name: "Save", exact: true }).click();
     const updatedHabitCard = page.getByRole("listitem").filter({ hasText: newName });
     await expect(updatedHabitCard).toBeVisible();
   });
@@ -103,7 +103,7 @@ test.describe('Home', () => {
     await editButton.click();
     const editNameInput = page.getByLabel(`Edit name for ${habitName}`);
     await editNameInput.fill("Changed name");
-    await page.getByRole("button", { name: "Cancel" }).click();
+    await page.getByRole("button", { name: "Cancel", exact: true }).click();
     await expect(page.getByLabel(`Edit name for ${habitName}`)).toHaveCount(0);
     await expect(habitCard).toBeVisible();
   });
@@ -122,7 +122,7 @@ test.describe('Home', () => {
     await expect(habitCard).toBeVisible();
     const editButton = habitCard.getByRole("button", { name: `Edit ${habitName}` });
     await editButton.click();
-    const saveButton = page.getByRole("button", { name: "Save" });
+    const saveButton = page.getByRole("button", { name: "Save", exact: true });
     await page.getByLabel(`Edit name for ${habitName}`).fill("");
     await expect(saveButton).toBeDisabled();
     await page.getByLabel(`Edit name for ${habitName}`).fill("   ");
@@ -157,12 +157,12 @@ test.describe('Home', () => {
    */
   test('TC08 - HabitForm - allows creating a new habit', async ({ page }) => {
     await page.goto("/");
-    const habitName = "Test habit create";
+    const habitName = `Test habit create ${Date.now()}`;
     await page.getByRole("textbox", { name: "New habit name" }).fill(habitName);
     await page.getByRole("combobox", { name: "Habit category" }).selectOption("General");
     await page.getByRole("combobox", { name: "Times per week" }).selectOption("7");
     await page.getByRole("button", { name: "Add habit" }).click();
-    await expect(page.getByText(habitName)).toBeVisible();
+    await expect(page.getByRole("listitem").filter({ hasText: habitName })).toBeVisible();
   });
 
   // ──────────────────────────────────────────────────────────────────────────
@@ -187,12 +187,12 @@ test.describe('Home', () => {
    */
   test('TC10 - HabitCard - marks habit done today disables button', async ({ page }) => {
     await page.goto("/");
-    const habitName = "Mark done habit";
+    const habitName = `Daily completion habit ${Date.now()}`;
     await page.getByRole("textbox", { name: "New habit name" }).fill(habitName);
     await page.getByRole("button", { name: "Add habit" }).click();
     const card = page.getByRole("listitem").filter({ hasText: habitName });
-    await card.getByRole("button", { name: "Mark done" }).click();
-    await expect(card.getByRole("button", { name: "Done today" })).toBeDisabled();
+    await card.getByRole("button", { name: "Mark done", exact: true }).click();
+    await expect(card.getByRole("button", { name: "Done today", exact: true })).toBeDisabled();
   });
 
   // ──────────────────────────────────────────────────────────────────────────
@@ -204,14 +204,14 @@ test.describe('Home', () => {
    */
   test('TC11 - HabitCard inline edit form - opens and cancels edit mode', async ({ page }) => {
     await page.goto("/");
-    const habitName = "Editable habit";
+    const habitName = `Editable habit ${Date.now()}`;
     await page.getByRole("textbox", { name: "New habit name" }).fill(habitName);
     await page.getByRole("button", { name: "Add habit" }).click();
     const card = page.getByRole("listitem").filter({ hasText: habitName });
     await card.getByRole("button", { name: `Edit ${habitName}` }).click();
     const nameInput = page.getByLabel(`Edit name for ${habitName}`);
     await expect(nameInput).toBeVisible();
-    await page.getByRole("button", { name: "Cancel" }).click();
+    await page.getByRole("button", { name: "Cancel", exact: true }).click();
     await expect(card.getByRole("button", { name: `Edit ${habitName}` })).toBeVisible();
   });
 
@@ -220,20 +220,21 @@ test.describe('Home', () => {
    */
   test('TC12 - HabitCard inline edit form - saves edited habit and closes form', async ({ page }) => {
     await page.goto("/");
-    const habitName = "Editable habit save";
+    const habitName = `Editable habit save ${Date.now()}`;
     await page.getByRole("textbox", { name: "New habit name" }).fill(habitName);
     await page.getByRole("button", { name: "Add habit" }).click();
     const card = page.getByRole("listitem").filter({ hasText: habitName });
     await card.getByRole("button", { name: `Edit ${habitName}` }).click();
     const nameInput = page.getByLabel(`Edit name for ${habitName}`);
     await expect(nameInput).toHaveValue(habitName);
-    await nameInput.fill("Updated habit name");
+    const updatedName = `${habitName} updated`;
+    await nameInput.fill(updatedName);
     const categorySelect = page.getByLabel(`Edit category for ${habitName}`);
     await categorySelect.selectOption("General");
     const timesSelect = page.getByLabel(`Edit times per week for ${habitName}`);
     await timesSelect.selectOption("3");
-    await page.getByRole("button", { name: "Save" }).click();
-    await expect(page.getByText("Updated habit name")).toBeVisible();
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await expect(page.getByRole("listitem").filter({ hasText: updatedName })).toBeVisible();
     await expect(page.getByLabel(`Edit name for ${habitName}`)).toHaveCount(0);
   });
 
