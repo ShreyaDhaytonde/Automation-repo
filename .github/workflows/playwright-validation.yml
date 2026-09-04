@@ -280,7 +280,24 @@ jobs:
           echo "No blocked dev resources - the browser can load the app's JavaScript."
 
       - name: Configure test authentication
-        run: echo "No authentication configured - app under test is open."
+        env:
+          TEST_AUTH_STORAGE_STATE: ${{ secrets.TEST_AUTH_STORAGE_STATE }}
+        run: |
+          if [ -z "$TEST_AUTH_STORAGE_STATE" ]; then
+            echo "No TEST_AUTH_STORAGE_STATE secret configured -- app under test is treated as open."
+            exit 0
+          fi
+          state_file="$GITHUB_WORKSPACE/auth-storage-state.json"
+          printf '%s' "$TEST_AUTH_STORAGE_STATE" > "$state_file"
+          if ! node -e "JSON.parse(require('fs').readFileSync(process.argv[1], 'utf8'))" "$state_file"; then
+            echo "::error title=Invalid TEST_AUTH_STORAGE_STATE::secret is not valid JSON -- it" \
+              "must be a Playwright storageState object (cookies + localStorage), e.g. from" \
+              "'npx playwright codegen --save-storage=auth.json' after logging in once, or" \
+              "context.storageState() in a setup script. Paste that file's content as the secret."
+            exit 1
+          fi
+          echo "PLAYWRIGHT_STORAGE_STATE=$state_file" >> "$GITHUB_ENV"
+          echo "Authenticated session loaded from the TEST_AUTH_STORAGE_STATE secret."
 
       - name: Run generated Playwright tests
         id: tests
