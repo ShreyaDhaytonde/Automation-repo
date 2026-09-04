@@ -29,16 +29,59 @@ on:
         required: false
         default: ""
         type: string
+      frontend_install_cmd:
+        description: >-
+          Command to install frontend dependencies, run from the frontend checkout root.
+          Empty means auto-detect an npm project (npm ci / npm install). Set this for any
+          other language or package manager (pnpm, yarn, poetry, bundler, go mod, ...).
+        required: false
+        default: ""
+        type: string
+      frontend_start_cmd:
+        description: >-
+          Command to start the frontend dev server, run from the frontend checkout root.
+          Empty defaults to `npm run dev`. Must bind to frontend_port and keep running in
+          the foreground (it is backgrounded by the workflow itself).
+        required: false
+        default: ""
+        type: string
+      frontend_port:
+        description: Port the frontend serves on.
+        required: false
+        default: "3000"
+        type: string
+      backend_install_cmd:
+        description: >-
+          Command to install backend dependencies, run from the backend checkout root.
+          Empty means auto-detect a Python project (pip install -r requirements.txt or
+          pip install .). Set this for any other language (npm/yarn, bundler, go mod,
+          maven/gradle, dotnet restore, ...).
+        required: false
+        default: ""
+        type: string
+      backend_start_cmd:
+        description: >-
+          Command to start the backend server, run from the backend checkout root. Empty
+          means auto-detect a Python ASGI app and run it with uvicorn. Must bind to
+          backend_port and keep running in the foreground.
+        required: false
+        default: ""
+        type: string
+      backend_port:
+        description: Port the backend serves on.
+        required: false
+        default: "8000"
+        type: string
 
 concurrency:
   group: playwright-validation-${{ inputs.branch }}
   cancel-in-progress: true
 
 env:
-  FRONTEND_PORT: "3000"
-  FRONTEND_URL: http://localhost:3000
-  BACKEND_URL: ${{ secrets.BACKEND_URL || 'http://localhost:8000' }}
-  BACKEND_PORT: "8000"
+  FRONTEND_PORT: ${{ inputs.frontend_port || '3000' }}
+  FRONTEND_URL: http://localhost:${{ inputs.frontend_port || '3000' }}
+  BACKEND_URL: ${{ secrets.BACKEND_URL || format('http://localhost:{0}', inputs.backend_port || '8000') }}
+  BACKEND_PORT: ${{ inputs.backend_port || '8000' }}
 
 jobs:
   validate:
@@ -87,14 +130,16 @@ jobs:
       - name: Install frontend dependencies
         working-directory: frontend
         run: |
-          if [ -f package-lock.json ]; then
+          if [ -n "${{ inputs.frontend_install_cmd }}" ]; then
+            bash -c "${{ inputs.frontend_install_cmd }}"
+          elif [ -f package-lock.json ]; then
             npm ci
           else
             npm install
           fi
 
       - name: Setup Python for backend
-        if: inputs.backend_repo != ''
+        if: inputs.backend_repo != '' && inputs.backend_install_cmd == ''
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
@@ -105,13 +150,18 @@ jobs:
         if: inputs.backend_repo != ''
         working-directory: backend
         run: |
-          python -m pip install --upgrade pip
-          if [ -f requirements.txt ]; then
+          if [ -n "${{ inputs.backend_install_cmd }}" ]; then
+            bash -c "${{ inputs.backend_install_cmd }}"
+          elif [ -f requirements.txt ]; then
+            python -m pip install --upgrade pip
             pip install -r requirements.txt
           elif [ -f pyproject.toml ]; then
+            python -m pip install --upgrade pip
             pip install .
           else
-            echo "::error title=No backend manifest::neither requirements.txt nor pyproject.toml found"
+            echo "::error title=No install command::backend_install_cmd was not provided" \
+              "and neither requirements.txt nor pyproject.toml was found -- a non-Python" \
+              "backend must be given an explicit backend_install_cmd"
             exit 1
           fi
 
@@ -119,22 +169,27 @@ jobs:
         if: inputs.backend_repo != ''
         working-directory: backend
         env:
-          PORT: "8000"
-          CORS_ORIGINS: '["http://127.0.0.1:3000","http://localhost:3000"]'
+          PORT: ${{ inputs.backend_port || '8000' }}
+          CORS_ORIGINS: '["http://127.0.0.1:${{ inputs.frontend_port || ''3000'' }}","http://localhost:${{ inputs.frontend_port || ''3000'' }}"]'
         run: |
-          entry=""
-          for candidate in app.main:app main:app app:app src.main:app; do
-            module="${candidate%%:*}"
-            path="$(echo "$module" | tr '.' '/').py"
-            if [ -f "$path" ]; then entry="$candidate"; break; fi
-          done
-          if [ -z "$entry" ]; then
-            echo "::error title=No ASGI entrypoint::looked for app/main.py, main.py, app.py, src/main.py"
-            exit 1
+          cmd="${{ inputs.backend_start_cmd }}"
+          if [ -z "$cmd" ]; then
+            entry=""
+            for candidate in app.main:app main:app app:app src.main:app; do
+              module="${candidate%%:*}"
+              path="$(echo "$module" | tr '.' '/').py"
+              if [ -f "$path" ]; then entry="$candidate"; break; fi
+            done
+            if [ -z "$entry" ]; then
+              echo "::error title=No ASGI entrypoint::backend_start_cmd was not provided and" \
+                "no app/main.py, main.py, app.py or src/main.py was found -- a non-Python" \
+                "backend must be given an explicit backend_start_cmd"
+              exit 1
+            fi
+            cmd="python -m uvicorn $entry --host 0.0.0.0 --port ${{ inputs.backend_port || '8000' }}"
           fi
-          echo "Starting uvicorn $entry on 8000"
-          nohup python -m uvicorn "$entry" --host 0.0.0.0 --port 8000 \
-            > "$GITHUB_WORKSPACE/backend.log" 2>&1 &
+          echo "Starting backend: $cmd"
+          nohup bash -c "$cmd" > "$GITHUB_WORKSPACE/backend.log" 2>&1 &
           echo $! > "$GITHUB_WORKSPACE/backend.pid"
 
       - name: Install test dependencies
@@ -176,15 +231,18 @@ jobs:
           fi
           exit 1
 
-      - name: Start frontend (npm run dev on 3000)
+      - name: Start frontend
         working-directory: frontend
         env:
-          PORT: "3000"
+          PORT: ${{ inputs.frontend_port || '3000' }}
           NEXT_PUBLIC_API_URL: ${{ env.BACKEND_URL }}
           VITE_API_URL: ${{ env.BACKEND_URL }}
           API_URL: ${{ env.BACKEND_URL }}
         run: |
-          npm run dev > "$GITHUB_WORKSPACE/frontend-dev.log" 2>&1 &
+          cmd="${{ inputs.frontend_start_cmd }}"
+          if [ -z "$cmd" ]; then cmd="npm run dev"; fi
+          echo "Starting frontend: $cmd"
+          nohup bash -c "$cmd" > "$GITHUB_WORKSPACE/frontend-dev.log" 2>&1 &
           echo $! > "$GITHUB_WORKSPACE/frontend.pid"
 
       - name: Wait for frontend
