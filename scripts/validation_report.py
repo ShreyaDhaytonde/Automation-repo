@@ -350,6 +350,42 @@ def notify(report: Report, context: dict[str, str]) -> bool:
         return False
 
 
+def _missing_results_report(exc: Exception) -> tuple[Report, str]:
+    """Build the report for a run where Playwright never produced results.json.
+
+    This is not a test-authoring failure -- there is no suite to blame, since
+    no test ever ran. The overwhelmingly common cause is an earlier
+    infrastructure step (backend/frontend health check) failing and skipping
+    every step after it, so this is reported as a server/environment problem,
+    never as test_bug.
+    """
+    reason = (
+        f"no test results ({type(exc).__name__}: {exc}) -- Playwright likely never ran "
+        "because an earlier infrastructure step failed (backend health check, frontend "
+        "health check, or dependency install); see this run's earlier steps for the "
+        "actual cause"
+    )
+    report = Report(confidence=0, verdict="fail")
+    report.failures.append(
+        Failure(
+            spec="<pipeline>",
+            title="Playwright never ran",
+            category=INFRA_BUG,
+            reason=reason,
+            error=str(exc),
+        )
+    )
+    report.counts_by_category[INFRA_BUG] = 1
+    report.summary = (
+        "No Playwright test results were produced this run. This is a server/environment "
+        "problem, not a test-authoring issue: an earlier step (most likely the backend or "
+        "frontend health check) failed and every step after it was skipped, so the "
+        "generated test suite was never given the chance to run. Check the backend and "
+        "frontend startup logs for this run to find the actual server bug."
+    )
+    return report, reason
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--results", default="results/results.json")
@@ -362,6 +398,20 @@ def main() -> int:
             results = json.load(handle)
     except (OSError, json.JSONDecodeError) as exc:
         print(f"::error title=Unreadable results::{exc}", file=sys.stderr)
+        report, reason = _missing_results_report(exc)
+        context = {
+            "branch": os.environ.get("VALIDATION_BRANCH", ""),
+            "commit_sha": os.environ.get("VALIDATION_COMMIT_SHA", ""),
+            "source_repo": os.environ.get("VALIDATION_SOURCE_REPO", ""),
+            "source_commit": os.environ.get("VALIDATION_SOURCE_COMMIT", ""),
+            "run_url": os.environ.get("VALIDATION_RUN_URL", ""),
+            "confidence_reason": reason,
+        }
+        os.makedirs(os.path.dirname(args.out) or ".", exist_ok=True)
+        with open(args.out, "w") as handle:
+            json.dump({**context, **asdict(report)}, handle, indent=2)
+        print(f"verdict={report.verdict} confidence={report.confidence} ({reason})")
+        print(f"categories={report.counts_by_category}")
         return 1
 
     report = build_report(results)
