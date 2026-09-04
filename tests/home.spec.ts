@@ -4,7 +4,7 @@ test.describe('Home', () => {
   test.setTimeout(60000);
 
   // ──────────────────────────────────────────────────────────────────────────
-  // SECTION 1: Home page
+  // SECTION 1: Home
   // ──────────────────────────────────────────────────────────────────────────
 
   /**
@@ -31,10 +31,6 @@ test.describe('Home', () => {
     await expect(page.getByRole("button", { name: "Add habit" })).toBeVisible();
   });
 
-  // ──────────────────────────────────────────────────────────────────────────
-  // SECTION 2: Habit creation
-  // ──────────────────────────────────────────────────────────────────────────
-
   /**
    * TC02: HabitForm - successful habit creation adds new habit to list
    */
@@ -48,10 +44,6 @@ test.describe('Home', () => {
     const habitCard = page.getByRole("listitem").filter({ hasText: habitName });
     await expect(habitCard).toBeVisible();
   });
-
-  // ──────────────────────────────────────────────────────────────────────────
-  // SECTION 3: Habit editing
-  // ──────────────────────────────────────────────────────────────────────────
 
   /**
    * TC03: HabitCard - inline edit form displays when Edit button clicked and updates fields
@@ -82,10 +74,6 @@ test.describe('Home', () => {
     await expect(updatedHabitCard).toBeVisible();
   });
 
-  // ──────────────────────────────────────────────────────────────────────────
-  // SECTION 4: HabitForm validation
-  // ──────────────────────────────────────────────────────────────────────────
-
   /**
    * TC04: HabitForm - form validation disables Add habit button for empty name
    */
@@ -98,10 +86,6 @@ test.describe('Home', () => {
     await input.fill("   ");
     await expect(addButton).toBeDisabled();
   });
-
-  // ──────────────────────────────────────────────────────────────────────────
-  // SECTION 5: Habit editing
-  // ──────────────────────────────────────────────────────────────────────────
 
   /**
    * TC05: HabitCard - cancel edit closes inline form without saving changes
@@ -124,10 +108,6 @@ test.describe('Home', () => {
     await expect(habitCard).toBeVisible();
   });
 
-  // ──────────────────────────────────────────────────────────────────────────
-  // SECTION 6: Habit editing validation
-  // ──────────────────────────────────────────────────────────────────────────
-
   /**
    * TC06: HabitCard - Save button disabled when name input is empty or blank
    */
@@ -147,6 +127,114 @@ test.describe('Home', () => {
     await expect(saveButton).toBeDisabled();
     await page.getByLabel(`Edit name for ${habitName}`).fill("   ");
     await expect(saveButton).toBeDisabled();
+  });
+
+  // ──────────────────────────────────────────────────────────────────────────
+  // SECTION 2: Page loading
+  // ──────────────────────────────────────────────────────────────────────────
+
+  /**
+   * TC07: Page heading and static elements render
+   */
+  test('TC07 - Page heading and static elements render', async ({ page }) => {
+    await page.goto("/");
+    await expect(page.getByRole("heading", { name: "Habit Tracker" })).toBeVisible();
+    await expect(page.getByText("Build small daily habits, one day at a time.")).toBeVisible();
+    await expect(page.getByLabel("Filter by category")).toBeVisible();
+    await expect(page.getByRole("combobox", { name: "Filter by category" })).toBeVisible();
+    await expect(page.getByRole("textbox", { name: "New habit name" })).toBeVisible();
+    await expect(page.getByRole("combobox", { name: "Habit category" })).toBeVisible();
+    await expect(page.getByRole("combobox", { name: "Times per week" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Add habit" })).toBeVisible();
+  });
+
+  // ──────────────────────────────────────────────────────────────────────────
+  // SECTION 3: Habit creation
+  // ──────────────────────────────────────────────────────────────────────────
+
+  /**
+   * TC08: HabitForm - allows creating a new habit
+   */
+  test('TC08 - HabitForm - allows creating a new habit', async ({ page }) => {
+    await page.goto("/");
+    const habitName = "Test habit create";
+    await page.getByRole("textbox", { name: "New habit name" }).fill(habitName);
+    await page.getByRole("combobox", { name: "Habit category" }).selectOption("General");
+    await page.getByRole("combobox", { name: "Times per week" }).selectOption("7");
+    await page.getByRole("button", { name: "Add habit" }).click();
+    await expect(page.getByText(habitName)).toBeVisible();
+  });
+
+  // ──────────────────────────────────────────────────────────────────────────
+  // SECTION 4: Filtering
+  // ──────────────────────────────────────────────────────────────────────────
+
+  /**
+   * TC09: Category filter - allows filtering habits
+   */
+  test('TC09 - Category filter - allows filtering habits', async ({ page }) => {
+    await page.goto("/");
+    await page.getByRole("combobox", { name: "Filter by category" }).selectOption("Health");
+    await expect(page.getByLabel("Filter by category")).toHaveValue("Health");
+  });
+
+  // ──────────────────────────────────────────────────────────────────────────
+  // SECTION 5: Habit management
+  // ──────────────────────────────────────────────────────────────────────────
+
+  /**
+   * TC10: HabitCard - marks habit done today disables button
+   */
+  test('TC10 - HabitCard - marks habit done today disables button', async ({ page }) => {
+    await page.goto("/");
+    const habitName = "Mark done habit";
+    await page.getByRole("textbox", { name: "New habit name" }).fill(habitName);
+    await page.getByRole("button", { name: "Add habit" }).click();
+    const card = page.getByRole("listitem").filter({ hasText: habitName });
+    await card.getByRole("button", { name: "Mark done" }).click();
+    await expect(card.getByRole("button", { name: "Done today" })).toBeDisabled();
+  });
+
+  // ──────────────────────────────────────────────────────────────────────────
+  // SECTION 6: Habit editing
+  // ──────────────────────────────────────────────────────────────────────────
+
+  /**
+   * TC11: HabitCard inline edit form - opens and cancels edit mode
+   */
+  test('TC11 - HabitCard inline edit form - opens and cancels edit mode', async ({ page }) => {
+    await page.goto("/");
+    const habitName = "Editable habit";
+    await page.getByRole("textbox", { name: "New habit name" }).fill(habitName);
+    await page.getByRole("button", { name: "Add habit" }).click();
+    const card = page.getByRole("listitem").filter({ hasText: habitName });
+    await card.getByRole("button", { name: `Edit ${habitName}` }).click();
+    const nameInput = page.getByLabel(`Edit name for ${habitName}`);
+    await expect(nameInput).toBeVisible();
+    await page.getByRole("button", { name: "Cancel" }).click();
+    await expect(card.getByRole("button", { name: `Edit ${habitName}` })).toBeVisible();
+  });
+
+  /**
+   * TC12: HabitCard inline edit form - saves edited habit and closes form
+   */
+  test('TC12 - HabitCard inline edit form - saves edited habit and closes form', async ({ page }) => {
+    await page.goto("/");
+    const habitName = "Editable habit save";
+    await page.getByRole("textbox", { name: "New habit name" }).fill(habitName);
+    await page.getByRole("button", { name: "Add habit" }).click();
+    const card = page.getByRole("listitem").filter({ hasText: habitName });
+    await card.getByRole("button", { name: `Edit ${habitName}` }).click();
+    const nameInput = page.getByLabel(`Edit name for ${habitName}`);
+    await expect(nameInput).toHaveValue(habitName);
+    await nameInput.fill("Updated habit name");
+    const categorySelect = page.getByLabel(`Edit category for ${habitName}`);
+    await categorySelect.selectOption("General");
+    const timesSelect = page.getByLabel(`Edit times per week for ${habitName}`);
+    await timesSelect.selectOption("3");
+    await page.getByRole("button", { name: "Save" }).click();
+    await expect(page.getByText("Updated habit name")).toBeVisible();
+    await expect(page.getByLabel(`Edit name for ${habitName}`)).toHaveCount(0);
   });
 
 });
