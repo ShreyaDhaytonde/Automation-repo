@@ -346,11 +346,9 @@ test.describe('Home', () => {
     await page.getByLabel('Times per week').selectOption('7');
     await page.getByRole('button', { name: 'Add habit' }).click();
     const habitCard = page.getByRole('listitem').filter({ hasText: habitName });
-    await expect(habitCard).toBeVisible();
-    const markDoneButton = habitCard.locator('button', { hasText: /^Mark done$/ });
+    const markDoneButton = habitCard.getByRole('button', { name: 'Mark done', exact: true });
     await markDoneButton.click();
-    await expect(markDoneButton).toBeDisabled();
-    await expect(markDoneButton).toHaveText('Done today');
+    await expect(habitCard.getByRole('button', { name: 'Done today', exact: true })).toBeDisabled();
   });
 
   // ──────────────────────────────────────────────────────────────────────────
