@@ -347,7 +347,7 @@ test.describe('Home', () => {
     await page.getByRole('button', { name: 'Add habit' }).click();
     const habitCard = page.getByRole('listitem').filter({ hasText: habitName });
     await expect(habitCard).toBeVisible();
-    const markDoneButton = habitCard.getByRole('button', { name: 'Mark done', exact: true });
+    const markDoneButton = habitCard.locator('button', { hasText: /^Mark done$/ });
     await markDoneButton.click();
     await expect(markDoneButton).toBeDisabled();
     await expect(markDoneButton).toHaveText('Done today');
