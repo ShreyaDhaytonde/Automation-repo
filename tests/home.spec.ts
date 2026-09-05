@@ -299,7 +299,7 @@ test.describe('Home', () => {
     await page.getByLabel(`Edit category for ${originalName}`).selectOption('Personal');
     await page.getByLabel(`Edit times per week for ${originalName}`).selectOption('5');
     await notesInput.fill(updatedNotes);
-    await page.getByRole('button', { name: 'Save' }).click();
+    await page.getByRole('button', { name: 'Save', exact: true }).click();
     const updatedHabitCard = page.getByRole('listitem').filter({ hasText: updatedName });
     await expect(updatedHabitCard).toBeVisible();
     await expect(updatedHabitCard.getByText(updatedNotes)).toBeVisible();
@@ -342,10 +342,12 @@ test.describe('Home', () => {
     await page.goto('/');
     const habitName = `Complete habit ${Date.now()}`;
     await page.getByLabel('New habit name').fill(habitName);
+    await page.getByLabel('Habit category').selectOption('General');
+    await page.getByLabel('Times per week').selectOption('7');
     await page.getByRole('button', { name: 'Add habit' }).click();
     const habitCard = page.getByRole('listitem').filter({ hasText: habitName });
     await expect(habitCard).toBeVisible();
-    const markDoneButton = habitCard.getByRole('button', { name: 'Mark done' });
+    const markDoneButton = habitCard.getByRole('button', { name: 'Mark done', exact: true });
     await markDoneButton.click();
     await expect(markDoneButton).toBeDisabled();
     await expect(markDoneButton).toHaveText('Done today');
