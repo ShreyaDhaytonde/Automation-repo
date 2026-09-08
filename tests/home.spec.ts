@@ -515,7 +515,8 @@ test.describe('Home', () => {
     await page.getByLabel('New habit name').fill(catHabit2);
     await page.getByLabel('Habit category').selectOption('Work');
     await page.getByRole('button', { name: 'Add habit' }).click();
-    await page.getByLabel('Filter by category').selectOption('Health');
+    const filterDropdown = page.getByLabel('Filter by category');
+    await filterDropdown.selectOption('Health');
     await expect(page.getByRole('listitem').filter({ hasText: catHabit1 })).toBeVisible();
     await expect(page.getByRole('listitem').filter({ hasText: catHabit2 })).toHaveCount(0);
   });
@@ -551,8 +552,10 @@ test.describe('Home', () => {
     const habit1 = `BulkComplete 1 ${Date.now()}`;
     const habit2 = `BulkComplete 2 ${Date.now()}`;
     await page.getByLabel('New habit name').fill(habit1);
+    await page.getByLabel('Habit category').selectOption('General');
     await page.getByRole('button', { name: 'Add habit' }).click();
     await page.getByLabel('New habit name').fill(habit2);
+    await page.getByLabel('Habit category').selectOption('General');
     await page.getByRole('button', { name: 'Add habit' }).click();
     const bulkCompleteButton = page.getByRole('button', { name: /^Complete all for today/ });
     await bulkCompleteButton.click();
