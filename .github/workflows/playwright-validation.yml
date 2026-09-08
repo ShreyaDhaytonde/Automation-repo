@@ -79,7 +79,7 @@ concurrency:
 
 env:
   FRONTEND_PORT: ${{ inputs.frontend_port || '3000' }}
-  FRONTEND_URL: http://localhost:${{ inputs.frontend_port || '3000' }}
+  FRONTEND_URL: ${{ secrets.FRONTEND_URL || format('http://localhost:{0}', inputs.frontend_port || '3000') }}
   BACKEND_URL: ${{ secrets.BACKEND_URL || format('http://localhost:{0}', inputs.backend_port || '8000') }}
   BACKEND_PORT: ${{ inputs.backend_port || '8000' }}
 
@@ -102,6 +102,7 @@ jobs:
           path: automation
 
       - name: Checkout application under test (frontend, exact commit)
+        if: secrets.FRONTEND_URL == ''
         uses: actions/checkout@v4
         with:
           repository: ${{ inputs.source_repo }}
@@ -128,6 +129,7 @@ jobs:
             automation/package-lock.json
 
       - name: Install frontend dependencies
+        if: secrets.FRONTEND_URL == ''
         working-directory: frontend
         run: |
           if [ -n "${{ inputs.frontend_install_cmd }}" ]; then
@@ -232,6 +234,7 @@ jobs:
           exit 1
 
       - name: Start frontend
+        if: secrets.FRONTEND_URL == ''
         working-directory: frontend
         env:
           PORT: ${{ inputs.frontend_port || '3000' }}
