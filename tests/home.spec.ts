@@ -524,13 +524,21 @@ test.describe('Home', () => {
     await page.getByLabel('New habit name').fill(habit1);
     await page.getByLabel('Habit category').selectOption('General');
     await page.getByRole('button', { name: 'Add habit' }).click();
+    await expect(page.getByRole('listitem').filter({ hasText: habit1 })).toBeVisible();
     await page.getByLabel('New habit name').fill(habit2);
     await page.getByLabel('Habit category').selectOption('General');
     await page.getByRole('button', { name: 'Add habit' }).click();
+    await expect(page.getByRole('listitem').filter({ hasText: habit2 })).toBeVisible();
     const bulkCompleteButton = page.getByRole('button', { name: /^Complete all for today/ });
     await bulkCompleteButton.click();
     await expect(bulkCompleteButton).toBeDisabled();
-    await expect(bulkCompleteButton).toHaveText(/Completing…/).or.toHaveText(/Complete all for today/);
+    // The bulk action can settle before this assertion polls, so wait for the transient
+    // "Completing…" label to clear rather than pinning the exact instant it appears --
+    // `expect(...).toHaveText(a).or.toHaveText(b)` is not a real Playwright API (`.or` is
+    // a Locator method, not part of the assertion chain) and threw a TypeError here. Note
+    // the button legitimately stays disabled afterward once nothing is left pending -- it
+    // does not necessarily re-enable, so that isn't the right thing to assert either.
+    await expect(bulkCompleteButton).not.toHaveText(/Completing…/, { timeout: 15_000 });
   });
 
   /**
@@ -710,10 +718,12 @@ test.describe('Home', () => {
     const addButton1 = page.getByRole('button', { name: 'Add habit' });
     await expect(addButton1).toBeEnabled();
     await addButton1.click();
+    await expect(page.getByRole('listitem').filter({ hasText: habitName1 })).toBeVisible();
     await page.getByLabel('New habit name').fill(habitName2);
     const addButton2 = page.getByRole('button', { name: 'Add habit' });
     await expect(addButton2).toBeEnabled();
     await addButton2.click();
+    await expect(page.getByRole('listitem').filter({ hasText: habitName2 })).toBeVisible();
     const sortSelect = page.getByLabel('Sort habits by');
     const sortValues = ['name', 'streak', 'category', 'target_per_week'];
     for (const val of sortValues) {
@@ -750,15 +760,20 @@ test.describe('Home', () => {
     const addButton1 = page.getByRole('button', { name: 'Add habit' });
     await expect(addButton1).toBeEnabled();
     await addButton1.click();
+    await expect(page.getByRole('listitem').filter({ hasText: habitName1 })).toBeVisible();
     await page.getByLabel('New habit name').fill(habitName2);
     const addButton2 = page.getByRole('button', { name: 'Add habit' });
     await expect(addButton2).toBeEnabled();
     await addButton2.click();
+    await expect(page.getByRole('listitem').filter({ hasText: habitName2 })).toBeVisible();
     const completeAllButton = page.getByRole('button', { name: /Complete all for today/ });
     await expect(completeAllButton).toBeEnabled();
     await completeAllButton.click();
-    await expect(completeAllButton).toHaveText(/Completing…/);
-    await expect(completeAllButton).toBeDisabled();
+    // The bulk action can settle before this assertion polls, so wait for the transient
+    // "Completing…" label to clear rather than pinning the exact instant. The button
+    // legitimately stays disabled afterward once nothing is left pending, so "enabled"
+    // is not a reliable end state to assert on either.
+    await expect(completeAllButton).not.toHaveText(/Completing…/, { timeout: 15_000 });
   });
 
 });
