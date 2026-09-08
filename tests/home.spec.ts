@@ -471,8 +471,10 @@ test.describe('Home', () => {
     const habit2 = `Search Beta ${Date.now()}`;
     await page.getByLabel('New habit name').fill(habit1);
     await page.getByRole('button', { name: 'Add habit' }).click();
+    await expect(page.getByRole('listitem').filter({ hasText: habit1 })).toBeVisible();
     await page.getByLabel('New habit name').fill(habit2);
     await page.getByRole('button', { name: 'Add habit' }).click();
+    await expect(page.getByRole('listitem').filter({ hasText: habit2 })).toBeVisible();
     await page.getByLabel('Search habits by name').fill('Alpha');
     await expect(page.getByRole('listitem').filter({ hasText: habit1 })).toBeVisible();
     await expect(page.getByRole('listitem').filter({ hasText: habit2 })).toHaveCount(0);
@@ -640,14 +642,21 @@ test.describe('Home', () => {
     await page.goto('/');
     const habitName = `Archive Habit ${Date.now()}`;
     await page.getByLabel('New habit name').fill(habitName);
-    await page.getByRole('button', { name: 'Add habit' }).click();
+    const addButton = page.getByRole('button', { name: 'Add habit' });
+    await expect(addButton).toBeEnabled();
+    await addButton.click();
     const habitCard = page.getByRole('listitem').filter({ hasText: habitName });
     await expect(habitCard).toBeVisible();
     const archiveButton = habitCard.getByRole('button', { name: `Archive ${habitName}` });
     await archiveButton.click();
-    await expect(habitCard.getByRole('button', { name: `Unarchive ${habitName}` })).toBeVisible();
-    await habitCard.getByRole('button', { name: `Unarchive ${habitName}` }).click();
-    await expect(habitCard.getByRole('button', { name: `Archive ${habitName}` })).toBeVisible();
+    await expect(page.getByRole('listitem').filter({ hasText: habitName })).toHaveCount(0);
+    const showArchivedCheckbox = page.getByLabel('Show archived');
+    await showArchivedCheckbox.check();
+    const archivedHabitCard = page.getByRole('listitem').filter({ hasText: habitName });
+    await expect(archivedHabitCard).toBeVisible();
+    const unarchiveButton = archivedHabitCard.getByRole('button', { name: `Unarchive ${habitName}` });
+    await unarchiveButton.click();
+    await expect(page.getByRole('listitem').filter({ hasText: habitName })).toHaveCount(1);
   });
 
   // ──────────────────────────────────────────────────────────────────────────
@@ -698,9 +707,13 @@ test.describe('Home', () => {
     const habitName1 = `Sort Habit A ${Date.now()}`;
     const habitName2 = `Sort Habit B ${Date.now()}`;
     await page.getByLabel('New habit name').fill(habitName1);
-    await page.getByRole('button', { name: 'Add habit' }).click();
+    const addButton1 = page.getByRole('button', { name: 'Add habit' });
+    await expect(addButton1).toBeEnabled();
+    await addButton1.click();
     await page.getByLabel('New habit name').fill(habitName2);
-    await page.getByRole('button', { name: 'Add habit' }).click();
+    const addButton2 = page.getByRole('button', { name: 'Add habit' });
+    await expect(addButton2).toBeEnabled();
+    await addButton2.click();
     const sortSelect = page.getByLabel('Sort habits by');
     const sortValues = ['name', 'streak', 'category', 'target_per_week'];
     for (const val of sortValues) {
@@ -734,9 +747,13 @@ test.describe('Home', () => {
     const habitName1 = `Bulk Complete Habit 1 ${Date.now()}`;
     const habitName2 = `Bulk Complete Habit 2 ${Date.now()}`;
     await page.getByLabel('New habit name').fill(habitName1);
-    await page.getByRole('button', { name: 'Add habit' }).click();
+    const addButton1 = page.getByRole('button', { name: 'Add habit' });
+    await expect(addButton1).toBeEnabled();
+    await addButton1.click();
     await page.getByLabel('New habit name').fill(habitName2);
-    await page.getByRole('button', { name: 'Add habit' }).click();
+    const addButton2 = page.getByRole('button', { name: 'Add habit' });
+    await expect(addButton2).toBeEnabled();
+    await addButton2.click();
     const completeAllButton = page.getByRole('button', { name: /Complete all for today/ });
     await expect(completeAllButton).toBeEnabled();
     await completeAllButton.click();
