@@ -72,6 +72,16 @@ on:
         required: false
         default: "8000"
         type: string
+      grep:
+        description: >-
+          Playwright --grep regex. Empty runs the whole suite (every initial
+          validation run). Non-empty scopes this run to only the matching
+          tests -- used by the agent's repair loop so rechecking whether a
+          fix landed costs that test's own time, not a full re-run of every
+          already-passing test in the suite.
+        required: false
+        default: ""
+        type: string
 
 concurrency:
   group: playwright-validation-${{ inputs.branch }}
@@ -315,11 +325,14 @@ jobs:
           PLAYWRIGHT_BASE_URL: ${{ env.FRONTEND_URL }}
           PLAYWRIGHT_JSON_OUTPUT_NAME: ../results/results.json
           CI: "true"
+          TEST_GREP: ${{ inputs.grep }}
         run: |
           mkdir -p ../results
-          npx playwright test \
-            --reporter=line,json,allure-playwright \
-            --output=../results/artifacts
+          args=(--reporter=line,json,allure-playwright --output=../results/artifacts)
+          if [ -n "$TEST_GREP" ]; then
+            args+=(--grep "$TEST_GREP")
+          fi
+          npx playwright test "${args[@]}"
 
       - name: Collect results
         id: collect
