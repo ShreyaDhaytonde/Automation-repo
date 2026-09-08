@@ -82,6 +82,11 @@ env:
   FRONTEND_URL: ${{ secrets.FRONTEND_URL || format('http://localhost:{0}', inputs.frontend_port || '3000') }}
   BACKEND_URL: ${{ secrets.BACKEND_URL || format('http://localhost:{0}', inputs.backend_port || '8000') }}
   BACKEND_PORT: ${{ inputs.backend_port || '8000' }}
+  # `if:` conditionals cannot reference the `secrets` context directly (GitHub
+  # rejects the workflow at dispatch time with "Unrecognized named-value:
+  # 'secrets'"), so the presence check is done once here, in `env:`, where
+  # `secrets` is allowed, and steps gate on this plain env flag instead.
+  FRONTEND_DEPLOYED: ${{ secrets.FRONTEND_URL != '' }}
 
 jobs:
   validate:
@@ -102,7 +107,7 @@ jobs:
           path: automation
 
       - name: Checkout application under test (frontend, exact commit)
-        if: secrets.FRONTEND_URL == ''
+        if: env.FRONTEND_DEPLOYED != 'true'
         uses: actions/checkout@v4
         with:
           repository: ${{ inputs.source_repo }}
@@ -129,7 +134,7 @@ jobs:
             automation/package-lock.json
 
       - name: Install frontend dependencies
-        if: secrets.FRONTEND_URL == ''
+        if: env.FRONTEND_DEPLOYED != 'true'
         working-directory: frontend
         run: |
           if [ -n "${{ inputs.frontend_install_cmd }}" ]; then
@@ -234,7 +239,7 @@ jobs:
           exit 1
 
       - name: Start frontend
-        if: secrets.FRONTEND_URL == ''
+        if: env.FRONTEND_DEPLOYED != 'true'
         working-directory: frontend
         env:
           PORT: ${{ inputs.frontend_port || '3000' }}
