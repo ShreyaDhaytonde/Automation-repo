@@ -378,10 +378,6 @@ test.describe('Home', () => {
     await expect(page).toHaveURL('/login');
   });
 
-  // ──────────────────────────────────────────────────────────────────────────
-  // SECTION 2: Home page load
-  // ──────────────────────────────────────────────────────────────────────────
-
   /**
    * TC22: Home page - page loads and displays unconditional controls
    */
@@ -398,10 +394,6 @@ test.describe('Home', () => {
     await expect(page.getByRole('checkbox', { name: 'Show archived' })).toBeVisible();
     await expect(page.getByRole('button', { name: /^Complete all for today/ })).toBeVisible();
   });
-
-  // ──────────────────────────────────────────────────────────────────────────
-  // SECTION 3: Habit form submission
-  // ──────────────────────────────────────────────────────────────────────────
 
   /**
    * TC23: HabitForm - add new habit successfully resets form
@@ -421,10 +413,6 @@ test.describe('Home', () => {
     await expect(notesInput).toHaveValue('');
   });
 
-  // ──────────────────────────────────────────────────────────────────────────
-  // SECTION 4: HabitCard actions
-  // ──────────────────────────────────────────────────────────────────────────
-
   /**
    * TC24: HabitCard - mark habit done today disables button and changes label
    */
@@ -438,10 +426,6 @@ test.describe('Home', () => {
     await markDoneButton.click();
     await expect(card.getByRole('button', { name: 'Done today', exact: true })).toBeDisabled();
   });
-
-  // ──────────────────────────────────────────────────────────────────────────
-  // SECTION 5: HabitCard edit functionality
-  // ──────────────────────────────────────────────────────────────────────────
 
   /**
    * TC25: HabitCard - edit habit and save changes updates displayed name and disables save button when empty
@@ -478,10 +462,6 @@ test.describe('Home', () => {
     await expect(page.getByRole('listitem').filter({ hasText: 'Updated ' + habitName })).toBeVisible();
   });
 
-  // ──────────────────────────────────────────────────────────────────────────
-  // SECTION 6: Search behavior
-  // ──────────────────────────────────────────────────────────────────────────
-
   /**
    * TC26: Home page - search filters habit list results
    */
@@ -497,10 +477,6 @@ test.describe('Home', () => {
     await expect(page.getByRole('listitem').filter({ hasText: habit1 })).toBeVisible();
     await expect(page.getByRole('listitem').filter({ hasText: habit2 })).toHaveCount(0);
   });
-
-  // ──────────────────────────────────────────────────────────────────────────
-  // SECTION 7: Category filter behavior
-  // ──────────────────────────────────────────────────────────────────────────
 
   /**
    * TC27: Home page - category filter updates visible habits
@@ -521,10 +497,6 @@ test.describe('Home', () => {
     await expect(page.getByRole('listitem').filter({ hasText: catHabit2 })).toHaveCount(0);
   });
 
-  // ──────────────────────────────────────────────────────────────────────────
-  // SECTION 8: Show archived toggle
-  // ──────────────────────────────────────────────────────────────────────────
-
   /**
    * TC28: Home page - toggling show archived controls archived habits visibility
    */
@@ -539,10 +511,6 @@ test.describe('Home', () => {
     await page.getByRole('checkbox', { name: 'Show archived' }).check();
     await expect(page.getByRole('listitem').filter({ hasText: archName })).toBeVisible();
   });
-
-  // ──────────────────────────────────────────────────────────────────────────
-  // SECTION 9: Complete all for today bulk action
-  // ──────────────────────────────────────────────────────────────────────────
 
   /**
    * TC29: Home page - Complete all for today bulk action disables button and updates label
@@ -563,10 +531,6 @@ test.describe('Home', () => {
     await expect(bulkCompleteButton).toHaveText(/Completing…/).or.toHaveText(/Complete all for today/);
   });
 
-  // ──────────────────────────────────────────────────────────────────────────
-  // SECTION 10: Export buttons
-  // ──────────────────────────────────────────────────────────────────────────
-
   /**
    * TC30: Home page - Export JSON and CSV buttons visibility and disabled state
    */
@@ -582,6 +546,202 @@ test.describe('Home', () => {
     await page.getByRole('button', { name: 'Add habit' }).click();
     await expect(exportJsonButton).toBeEnabled();
     await expect(exportCsvButton).toBeEnabled();
+  });
+
+  // ──────────────────────────────────────────────────────────────────────────
+  // SECTION 2: Home page rendering
+  // ──────────────────────────────────────────────────────────────────────────
+
+  /**
+   * TC31: Home - page loads and renders core controls
+   */
+  test('TC31 - Home - page loads and renders core controls', async ({ page }) => {
+    await page.goto('/');
+    await expect(page.getByRole('heading', { name: 'Habit Tracker' })).toBeVisible();
+    await expect(page.getByLabel('Search habits by name')).toBeVisible();
+    await expect(page.getByLabel('Sort habits by')).toBeVisible();
+    await expect(page.getByLabel('Filter by category')).toBeVisible();
+    await expect(page.getByRole('checkbox', { name: 'Show archived' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Add habit' })).toBeVisible();
+  });
+
+  // ──────────────────────────────────────────────────────────────────────────
+  // SECTION 3: Habit form submission
+  // ──────────────────────────────────────────────────────────────────────────
+
+  /**
+   * TC32: HabitForm - creates a new habit successfully
+   */
+  test('TC32 - HabitForm - creates a new habit successfully', async ({ page }) => {
+    await page.goto('/');
+    const habitName = `Test Habit ${Date.now()}`;
+    await page.getByLabel('New habit name').fill(habitName);
+    await page.getByLabel('Habit category').selectOption('General');
+    await page.getByLabel('Times per week').selectOption('1');
+    await page.getByLabel('Notes (optional)').fill('Test notes');
+    await page.getByRole('button', { name: 'Add habit' }).click();
+    await expect(page.getByRole('listitem').filter({ hasText: habitName })).toBeVisible();
+  });
+
+  // ──────────────────────────────────────────────────────────────────────────
+  // SECTION 4: HabitCard editing
+  // ──────────────────────────────────────────────────────────────────────────
+
+  /**
+   * TC33: HabitCard - edits an existing habit's name, category, target per week, and notes
+   */
+  test('TC33 - HabitCard - edits an existing habit\'s name, category, target per week, and notes', async ({ page }) => {
+    await page.goto('/');
+    const originalName = `Original Habit ${Date.now()}`;
+    const updatedName = `Updated Habit ${Date.now()}`;
+    await page.getByLabel('New habit name').fill(originalName);
+    await page.getByRole('button', { name: 'Add habit' }).click();
+    const habitCard = page.getByRole('listitem').filter({ hasText: originalName });
+    await expect(habitCard).toBeVisible();
+    await habitCard.getByRole('button', { name: `Edit` }).click();
+    const nameInput = page.getByLabel(`Edit name for ${originalName}`);
+    await expect(nameInput).toHaveValue(originalName);
+    await nameInput.fill(updatedName);
+    await page.getByLabel(`Edit category for ${originalName}`).selectOption('Health');
+    await page.getByLabel(`Edit times per week for ${originalName}`).selectOption('3');
+    await page.getByLabel(`Edit notes for ${originalName}`).fill('Updated notes');
+    await page.getByRole('button', { name: 'Save' }).click();
+    await expect(page.getByRole('listitem').filter({ hasText: updatedName })).toBeVisible();
+  });
+
+  // ──────────────────────────────────────────────────────────────────────────
+  // SECTION 5: HabitCard completion
+  // ──────────────────────────────────────────────────────────────────────────
+
+  /**
+   * TC34: HabitCard - marks a habit as completed today
+   */
+  test('TC34 - HabitCard - marks a habit as completed today', async ({ page }) => {
+    await page.goto('/');
+    const habitName = `Complete Habit ${Date.now()}`;
+    await page.getByLabel('New habit name').fill(habitName);
+    await page.getByRole('button', { name: 'Add habit' }).click();
+    const habitCard = page.getByRole('listitem').filter({ hasText: habitName });
+    await expect(habitCard).toBeVisible();
+    const markDoneButton = habitCard.getByRole('button', { name: 'Mark done' });
+    await markDoneButton.click();
+    await expect(habitCard.getByRole('button', { name: 'Done today' })).toBeVisible();
+    await expect(habitCard.getByRole('button', { name: 'Done today' })).toBeDisabled();
+  });
+
+  // ──────────────────────────────────────────────────────────────────────────
+  // SECTION 6: HabitCard archiving
+  // ──────────────────────────────────────────────────────────────────────────
+
+  /**
+   * TC35: HabitCard - toggles archive and unarchive of a habit
+   */
+  test('TC35 - HabitCard - toggles archive and unarchive of a habit', async ({ page }) => {
+    await page.goto('/');
+    const habitName = `Archive Habit ${Date.now()}`;
+    await page.getByLabel('New habit name').fill(habitName);
+    await page.getByRole('button', { name: 'Add habit' }).click();
+    const habitCard = page.getByRole('listitem').filter({ hasText: habitName });
+    await expect(habitCard).toBeVisible();
+    const archiveButton = habitCard.getByRole('button', { name: `Archive ${habitName}` });
+    await archiveButton.click();
+    await expect(habitCard.getByRole('button', { name: `Unarchive ${habitName}` })).toBeVisible();
+    await habitCard.getByRole('button', { name: `Unarchive ${habitName}` }).click();
+    await expect(habitCard.getByRole('button', { name: `Archive ${habitName}` })).toBeVisible();
+  });
+
+  // ──────────────────────────────────────────────────────────────────────────
+  // SECTION 7: Habits filtering and searching
+  // ──────────────────────────────────────────────────────────────────────────
+
+  /**
+   * TC36: Home - filters habits by category
+   */
+  test('TC36 - Home - filters habits by category', async ({ page }) => {
+    await page.goto('/');
+    const habitName1 = `Filter Habit 1 ${Date.now()}`;
+    const habitName2 = `Filter Habit 2 ${Date.now()}`;
+    await page.getByLabel('New habit name').fill(habitName1);
+    await page.getByLabel('Habit category').selectOption('Health');
+    await page.getByRole('button', { name: 'Add habit' }).click();
+    await expect(page.getByRole('listitem').filter({ hasText: habitName1 })).toBeVisible();
+    await page.getByLabel('New habit name').fill(habitName2);
+    await page.getByLabel('Habit category').selectOption('Work');
+    await page.getByRole('button', { name: 'Add habit' }).click();
+    await expect(page.getByRole('listitem').filter({ hasText: habitName2 })).toBeVisible();
+    await page.getByLabel('Filter by category').selectOption('Health');
+    await expect(page.getByRole('listitem').filter({ hasText: habitName1 })).toBeVisible();
+    await expect(page.getByRole('listitem').filter({ hasText: habitName2 })).toHaveCount(0);
+  });
+
+  /**
+   * TC37: Home - searches for habits by name
+   */
+  test('TC37 - Home - searches for habits by name', async ({ page }) => {
+    await page.goto('/');
+    const habitName = `Search Habit ${Date.now()}`;
+    await page.getByLabel('New habit name').fill(habitName);
+    await page.getByRole('button', { name: 'Add habit' }).click();
+    await expect(page.getByRole('listitem').filter({ hasText: habitName })).toBeVisible();
+    const searchInput = page.getByLabel('Search habits by name');
+    await searchInput.fill(habitName.slice(0, 5));
+    await expect(page.getByRole('listitem').filter({ hasText: habitName })).toBeVisible();
+    await searchInput.fill('nomatchterm');
+    await expect(page.getByText(new RegExp(`No habits match "nomatchterm"\.`))).toBeVisible();
+  });
+
+  /**
+   * TC38: Home - sorts habits by different criteria updates visible list
+   */
+  test('TC38 - Home - sorts habits by different criteria updates visible list', async ({ page }) => {
+    await page.goto('/');
+    const habitName1 = `Sort Habit A ${Date.now()}`;
+    const habitName2 = `Sort Habit B ${Date.now()}`;
+    await page.getByLabel('New habit name').fill(habitName1);
+    await page.getByRole('button', { name: 'Add habit' }).click();
+    await page.getByLabel('New habit name').fill(habitName2);
+    await page.getByRole('button', { name: 'Add habit' }).click();
+    const sortSelect = page.getByLabel('Sort habits by');
+    const sortValues = ['name', 'streak', 'category', 'target_per_week'];
+    for (const val of sortValues) {
+      await sortSelect.selectOption(val);
+      await expect(page.getByRole('list')).toBeVisible();
+    }
+  });
+
+  /**
+   * TC39: Home - toggles show archived checkbox updates habits list
+   */
+  test('TC39 - Home - toggles show archived checkbox updates habits list', async ({ page }) => {
+    await page.goto('/');
+    const checkbox = page.getByRole('checkbox', { name: 'Show archived' });
+    const initialCount = await page.getByRole('listitem').count();
+    await checkbox.check();
+    await expect(page.getByRole('list')).toBeVisible();
+    await checkbox.uncheck();
+    await expect(page.getByRole('list')).toBeVisible();
+  });
+
+  // ──────────────────────────────────────────────────────────────────────────
+  // SECTION 8: Habit bulk actions
+  // ──────────────────────────────────────────────────────────────────────────
+
+  /**
+   * TC40: Home - completes all incomplete habits for today with bulk action
+   */
+  test('TC40 - Home - completes all incomplete habits for today with bulk action', async ({ page }) => {
+    await page.goto('/');
+    const habitName1 = `Bulk Complete Habit 1 ${Date.now()}`;
+    const habitName2 = `Bulk Complete Habit 2 ${Date.now()}`;
+    await page.getByLabel('New habit name').fill(habitName1);
+    await page.getByRole('button', { name: 'Add habit' }).click();
+    await page.getByLabel('New habit name').fill(habitName2);
+    await page.getByRole('button', { name: 'Add habit' }).click();
+    const completeAllButton = page.getByRole('button', { name: /Complete all for today/ });
+    await expect(completeAllButton).toBeEnabled();
+    await completeAllButton.click();
+    await expect(completeAllButton).toHaveText(/Completing…/);
+    await expect(completeAllButton).toBeDisabled();
   });
 
 });
