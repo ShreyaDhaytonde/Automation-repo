@@ -29,10 +29,6 @@ test.describe('Stats', () => {
     await expect(page).toHaveURL("/");
   });
 
-  // ──────────────────────────────────────────────────────────────────────────
-  // SECTION 2: Stats page initial render
-  // ──────────────────────────────────────────────────────────────────────────
-
   /**
    * TC03: Stats page - initial render shows heading, description, back link, theme toggle, and logout button
    */
@@ -42,6 +38,19 @@ test.describe('Stats', () => {
     await expect(page.getByText('How your habits are tracking overall.')).toBeVisible();
     await expect(page.getByRole('link', { name: 'Back to habits' })).toBeVisible();
     await expect(page.getByRole('button', { name: 'Logout' })).toBeVisible();
+  });
+
+  // ──────────────────────────────────────────────────────────────────────────
+  // SECTION 2: Stats page load
+  // ──────────────────────────────────────────────────────────────────────────
+
+  /**
+   * TC04: Stats page - loads and displays heading and back link
+   */
+  test('TC04 - Stats page - loads and displays heading and back link', async ({ page }) => {
+    await page.goto('/stats');
+    await expect(page.getByRole('heading', { name: 'Your stats' })).toBeVisible();
+    await expect(page.getByRole('link', { name: '← Back to habits' })).toBeVisible();
   });
 
 });
