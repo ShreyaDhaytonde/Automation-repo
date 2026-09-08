@@ -430,14 +430,13 @@ test.describe('Home', () => {
    */
   test('TC24 - HabitCard - mark habit done today disables button and changes label', async ({ page }) => {
     await page.goto('/');
-    const habitName = 'HabitDone ' + Date.now();
+    const habitName = `HabitDone ${Date.now()}`;
     await page.getByLabel('New habit name').fill(habitName);
     await page.getByRole('button', { name: 'Add habit' }).click();
     const card = page.getByRole('listitem').filter({ hasText: habitName });
-    const markDoneButton = card.getByRole('button', { name: 'Mark done' });
+    const markDoneButton = card.getByRole('button', { name: 'Mark done', exact: true });
     await markDoneButton.click();
-    await expect(markDoneButton).toBeDisabled();
-    await expect(markDoneButton).toHaveText('Done today');
+    await expect(card.getByRole('button', { name: 'Done today', exact: true })).toBeDisabled();
   });
 
   // ──────────────────────────────────────────────────────────────────────────
@@ -449,7 +448,7 @@ test.describe('Home', () => {
    */
   test('TC25 - HabitCard - edit habit and save changes updates displayed name and disables save button when empty', async ({ page }) => {
     await page.goto('/');
-    const habitName = 'HabitEdit ' + Date.now();
+    const habitName = `HabitEdit ${Date.now()}`;
     await page.getByLabel('New habit name').fill(habitName);
     await page.getByRole('button', { name: 'Add habit' }).click();
     const card = page.getByRole('listitem').filter({ hasText: habitName });
@@ -464,14 +463,16 @@ test.describe('Home', () => {
     await categorySelect.selectOption('Work');
     await timesSelect.selectOption('5');
     await notesInput.fill('Updated notes');
-    const saveButton = page.getByRole('button', { name: 'Save' });
+    const saveButton = page.getByRole('button', { name: 'Save', exact: true });
     await expect(saveButton).toBeEnabled();
     await saveButton.click();
     const updatedCard = page.getByRole('listitem').filter({ hasText: 'Updated ' + habitName });
     await expect(updatedCard).toBeVisible();
-    await editButton.click();
-    await nameInput.fill('');
-    await expect(saveButton).toBeDisabled();
+    const updatedEditButton = updatedCard.getByRole('button', { name: `Edit Updated ${habitName}` });
+    await updatedEditButton.click();
+    const updatedNameInput = page.getByLabel(`Edit name for Updated ${habitName}`);
+    await updatedNameInput.fill('');
+    await expect(page.getByRole('button', { name: 'Save', exact: true })).toBeDisabled();
     const cancelButton = page.getByRole('button', { name: 'Cancel', exact: true });
     await cancelButton.click();
     await expect(page.getByRole('listitem').filter({ hasText: 'Updated ' + habitName })).toBeVisible();
@@ -486,8 +487,8 @@ test.describe('Home', () => {
    */
   test('TC26 - Home page - search filters habit list results', async ({ page }) => {
     await page.goto('/');
-    const habit1 = 'Search Alpha ' + Date.now();
-    const habit2 = 'Search Beta ' + Date.now();
+    const habit1 = `Search Alpha ${Date.now()}`;
+    const habit2 = `Search Beta ${Date.now()}`;
     await page.getByLabel('New habit name').fill(habit1);
     await page.getByRole('button', { name: 'Add habit' }).click();
     await page.getByLabel('New habit name').fill(habit2);
@@ -506,11 +507,13 @@ test.describe('Home', () => {
    */
   test('TC27 - Home page - category filter updates visible habits', async ({ page }) => {
     await page.goto('/');
-    const catHabit1 = 'Category Health ' + Date.now();
-    const catHabit2 = 'Category Work ' + Date.now();
+    const catHabit1 = `Category Health ${Date.now()}`;
+    const catHabit2 = `Category Work ${Date.now()}`;
     await page.getByLabel('New habit name').fill(catHabit1);
+    await page.getByLabel('Habit category').selectOption('Health');
     await page.getByRole('button', { name: 'Add habit' }).click();
     await page.getByLabel('New habit name').fill(catHabit2);
+    await page.getByLabel('Habit category').selectOption('Work');
     await page.getByRole('button', { name: 'Add habit' }).click();
     await page.getByLabel('Filter by category').selectOption('Health');
     await expect(page.getByRole('listitem').filter({ hasText: catHabit1 })).toBeVisible();
@@ -545,8 +548,8 @@ test.describe('Home', () => {
    */
   test('TC29 - Home page - Complete all for today bulk action disables button and updates label', async ({ page }) => {
     await page.goto('/');
-    const habit1 = 'BulkComplete 1 ' + Date.now();
-    const habit2 = 'BulkComplete 2 ' + Date.now();
+    const habit1 = `BulkComplete 1 ${Date.now()}`;
+    const habit2 = `BulkComplete 2 ${Date.now()}`;
     await page.getByLabel('New habit name').fill(habit1);
     await page.getByRole('button', { name: 'Add habit' }).click();
     await page.getByLabel('New habit name').fill(habit2);
