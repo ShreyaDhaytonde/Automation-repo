@@ -2,8 +2,8 @@
 
 Self-contained on purpose. This runs inside the automation repository's CI,
 which cannot install the generator's package, so it depends on nothing beyond
-the standard library plus `openai` -- and degrades to a deterministic summary
-when even that is unavailable.
+the standard library. Classification and the summary are both deterministic --
+no LLM call is made here.
 
 Reads:
   results/results.json   Playwright JSON reporter output
@@ -268,58 +268,6 @@ def _deterministic_summary(report: Report) -> str:
     return " ".join(lines)
 
 
-def ai_summary(report: Report) -> str:
-    """One paragraph a reviewer can act on, or a deterministic fallback.
-
-    The fallback is not a degraded mode to apologise for: a report that
-    always renders is worth more than one that is occasionally richer, and
-    the counts plus categories already carry the actionable content.
-    """
-    api_key = os.environ.get("OPENAI_API_KEY")
-    model = os.environ.get("OPENAI_MODEL", "gpt-4.1-mini")
-    if not api_key or not report.failures:
-        return _deterministic_summary(report)
-
-    try:
-        from openai import OpenAI
-    except ImportError:
-        return _deterministic_summary(report)
-
-    payload = {
-        "totals": {
-            "total": report.total,
-            "passed": report.passed,
-            "failed": report.failed,
-            "flaky": report.flaky,
-        },
-        "failures": [asdict(f) for f in report.failures[:15]],
-    }
-    try:
-        client = OpenAI(api_key=api_key)
-        completion = client.chat.completions.create(
-            model=model,
-            messages=[
-                {
-                    "role": "system",
-                    "content": (
-                        "You summarize a Playwright validation run for a reviewer who has "
-                        "not seen it. Two short paragraphs, plain prose, no markdown. Say "
-                        "what failed and what the most likely cause is, grouping failures "
-                        "that share a cause. Distinguish clearly between the application "
-                        "misbehaving, the generated test being wrong, and the environment "
-                        "being broken. State only what the data supports; if a cause is "
-                        "ambiguous, say so rather than guessing."
-                    ),
-                },
-                {"role": "user", "content": json.dumps(payload)},
-            ],
-        )
-        text = (completion.choices[0].message.content or "").strip()
-        return text or _deterministic_summary(report)
-    except Exception as exc:  # noqa: BLE001 - never fail the pipeline on summary
-        return f"{_deterministic_summary(report)} (AI summary unavailable: {type(exc).__name__})"
-
-
 def notify(report: Report, context: dict[str, str]) -> bool:
     """POST the report to the configured tool. Returns whether it was sent.
 
@@ -417,7 +365,7 @@ def main() -> int:
     report = build_report(results)
     report.confidence, reason = score_confidence(report)
     report.verdict = "pass" if report.failed == 0 and report.flaky == 0 else "fail"
-    report.summary = ai_summary(report)
+    report.summary = _deterministic_summary(report)
 
     context = {
         "branch": os.environ.get("VALIDATION_BRANCH", ""),

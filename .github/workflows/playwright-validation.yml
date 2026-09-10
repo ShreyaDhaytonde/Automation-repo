@@ -397,8 +397,6 @@ jobs:
       - name: Analyse results and route
         if: always()
         env:
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-          OPENAI_MODEL: ${{ vars.OPENAI_MODEL || 'gpt-4.1-mini' }}
           VALIDATION_NOTIFY_URL: ${{ secrets.VALIDATION_NOTIFY_URL }}
           VALIDATION_NOTIFY_TOKEN: ${{ secrets.VALIDATION_NOTIFY_TOKEN }}
           VALIDATION_BRANCH: ${{ inputs.branch }}
@@ -407,9 +405,6 @@ jobs:
           VALIDATION_SOURCE_COMMIT: ${{ inputs.source_commit }}
           VALIDATION_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
-          if [ -n "$OPENAI_API_KEY" ]; then
-            pip install --quiet openai
-          fi
           python automation/scripts/validation_report.py \
             --results results/results.json \
             --out results/validation-report.json \
