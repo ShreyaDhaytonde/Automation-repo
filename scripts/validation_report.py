@@ -21,6 +21,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import sys
 import urllib.error
 import urllib.request
@@ -43,11 +44,30 @@ INFRA_SIGNALS = (
     "Executable doesn't exist",
 )
 
-TEST_SIGNALS = (
+# A 10+ digit run in the failing locator is almost always a Date.now()-style
+# fixture value the FAILING TEST created for itself (e.g. `Habit ${Date.now()}`).
+# When a locator built from that value doesn't resolve the way the test expected
+# -- not found, or matching more than one element -- the selector itself was
+# correctly scoped to data only this test could have produced. That rules out
+# "the test wrote a bad selector" as the cause: what's left is the application
+# either never producing/rendering what was asked for, or producing it more
+# than once. Signals gated on this are ambiguous between those two causes
+# without deeper reasoning, so they resolve to developer_bug, not test_bug.
+OWN_FIXTURE_PATTERN = re.compile(r"\d{10,}")
+
+# Ambiguous by themselves: "more than one element matched" or "never appeared"
+# reads as a test-authoring mistake ONLY when the locator was not already
+# scoped to this test's own unique fixture (see OWN_FIXTURE_PATTERN above).
+AMBIGUOUS_TEST_SIGNALS = (
     "strict mode violation",
     "resolved to 2 elements",
     "resolved to 3 elements",
     "resolved to more than one element",
+)
+
+# Unambiguous regardless of fixture scoping: these are defects in the test
+# file's own code, not in what the application did.
+TEST_SIGNALS = (
     "did not find some options",
     "Option not found",
     "is not a function",
@@ -131,6 +151,18 @@ def classify(error: str) -> tuple[str, str]:
         if signal in haystack:
             return INFRA_BUG, f"environment problem: matched {signal!r}"
 
+    scoped_to_own_fixture = bool(OWN_FIXTURE_PATTERN.search(haystack))
+
+    for signal in AMBIGUOUS_TEST_SIGNALS:
+        if signal in haystack:
+            if scoped_to_own_fixture:
+                return DEVELOPER_BUG, (
+                    f"application behaved differently: matched {signal!r} on a locator "
+                    "scoped to this test's own unique fixture value, so the selector "
+                    "was not the problem"
+                )
+            return TEST_BUG, f"test authoring problem: matched {signal!r}"
+
     for signal in TEST_SIGNALS:
         if signal in haystack:
             return TEST_BUG, f"test authoring problem: matched {signal!r}"
@@ -143,6 +175,12 @@ def classify(error: str) -> tuple[str, str]:
 
     lowered = haystack.lower()
     if "timeout" in lowered or "timed out" in lowered:
+        if scoped_to_own_fixture:
+            return DEVELOPER_BUG, (
+                "timed out waiting for a locator scoped to this test's own unique "
+                "fixture value, so the selector was not the problem - the "
+                "application never produced or rendered it"
+            )
         return TEST_BUG, "timed out waiting for a locator - selector or missing feature"
 
     for signal in DEVELOPER_SIGNALS:
