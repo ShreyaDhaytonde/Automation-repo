@@ -102,6 +102,13 @@ jobs:
   validate:
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy-pages.outputs.page_url }}
 
     steps:
       - name: Name this run's artifact
@@ -388,6 +395,31 @@ jobs:
             echo "No allure-results directory - skipping report generation."
           fi
 
+      - name: Check Allure report exists
+        if: always()
+        id: allure-check
+        run: |
+          if [ -f results/allure-report/index.html ]; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      # Publishes this run's Allure report to GitHub Pages -- a real, stable
+      # URL to paste into Teams/Slack, generated purely by copying static
+      # files. No LLM call anywhere in this path. Each run overwrites the
+      # site, so the URL always shows the most recent run's report.
+      - name: Upload Allure report to Pages
+        if: always() && steps.allure-check.outputs.exists == 'true'
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: results/allure-report
+
+      - name: Deploy Allure report to Pages
+        if: always() && steps.allure-check.outputs.exists == 'true'
+        id: deploy-pages
+        uses: actions/deploy-pages@v4
+
       - name: Setup Python
         if: always()
         uses: actions/setup-python@v5
@@ -412,14 +444,21 @@ jobs:
 
       - name: Add report to run summary
         if: always()
+        env:
+          ALLURE_PAGE_URL: ${{ steps.deploy-pages.outputs.page_url }}
         run: |
           report=results/validation-report.json
           [ -f "$report" ] || exit 0
           python - <<'PY' >> "$GITHUB_STEP_SUMMARY"
           import json
+          import os
           r = json.load(open("results/validation-report.json"))
           print(f"### Validation: {r['verdict'].upper()}  (confidence {r['confidence']})")
           print()
+          page_url = os.environ.get("ALLURE_PAGE_URL")
+          if page_url:
+              print(f"**Allure report:** {page_url}")
+              print()
           print(f"- {r['passed']}/{r['total']} passed, {r['failed']} failed, "
                 f"{r['flaky']} flaky, {r['skipped']} skipped")
           print(f"- confidence: {r['confidence']} - {r['confidence_reason']}")
