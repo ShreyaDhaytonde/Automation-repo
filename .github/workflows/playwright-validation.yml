@@ -97,6 +97,7 @@ env:
   # 'secrets'"), so the presence check is done once here, in `env:`, where
   # `secrets` is allowed, and steps gate on this plain env flag instead.
   FRONTEND_DEPLOYED: ${{ secrets.FRONTEND_URL != '' }}
+  GMAIL_CONFIGURED: ${{ secrets.GMAIL_ADDRESS != '' }}
 
 jobs:
   validate:
@@ -478,6 +479,55 @@ jobs:
           print()
           print(r["summary"])
           PY
+
+      # Deterministic values only -- no LLM call. Pulled from the report JSON
+      # already written above, plus the Pages URL, which is always
+      # https://<owner>.github.io/<repo>/ since the deploy step earlier in
+      # this job overwrites that same site on every run.
+      - name: Extract report summary for email
+        if: always()
+        id: report-summary
+        run: |
+          report=results/validation-report.json
+          if [ ! -f "$report" ]; then
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "exists=true" >> "$GITHUB_OUTPUT"
+          owner_lower=$(echo "$GITHUB_REPOSITORY_OWNER" | tr '[:upper:]' '[:lower:]')
+          repo_name="${GITHUB_REPOSITORY#*/}"
+          echo "pages_url=https://${owner_lower}.github.io/${repo_name}/" >> "$GITHUB_OUTPUT"
+          python - <<'PY' >> "$GITHUB_OUTPUT"
+          import json
+          r = json.load(open("results/validation-report.json"))
+          print(f"verdict={r['verdict']}")
+          print(f"total={r['total']}")
+          print(f"passed={r['passed']}")
+          print(f"failed={r['failed']}")
+          print(f"flaky={r['flaky']}")
+          PY
+
+      - name: Email report to Gmail
+        if: always() && steps.report-summary.outputs.exists == 'true' && env.GMAIL_CONFIGURED == 'true'
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          username: ${{ secrets.GMAIL_ADDRESS }}
+          password: ${{ secrets.GMAIL_APP_PASSWORD }}
+          from: Playwright Validation <${{ secrets.GMAIL_ADDRESS }}>
+          to: ${{ secrets.GMAIL_ADDRESS }}
+          subject: >-
+            Playwright validation: ${{ steps.report-summary.outputs.verdict }}
+            (${{ steps.report-summary.outputs.passed }}/${{ steps.report-summary.outputs.total }} passed)
+          body: |
+            Verdict: ${{ steps.report-summary.outputs.verdict }}
+            Passed: ${{ steps.report-summary.outputs.passed }}/${{ steps.report-summary.outputs.total }}
+            Failed: ${{ steps.report-summary.outputs.failed }}
+            Flaky: ${{ steps.report-summary.outputs.flaky }}
+
+            Report: ${{ steps.report-summary.outputs.pages_url }}
+            Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
 
       - name: Upload validation artifacts
         if: always()
