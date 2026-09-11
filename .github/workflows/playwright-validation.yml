@@ -97,7 +97,7 @@ env:
   # 'secrets'"), so the presence check is done once here, in `env:`, where
   # `secrets` is allowed, and steps gate on this plain env flag instead.
   FRONTEND_DEPLOYED: ${{ secrets.FRONTEND_URL != '' }}
-  GMAIL_CONFIGURED: ${{ secrets.GMAIL_ADDRESS != '' }}
+  OUTLOOK_CONFIGURED: ${{ secrets.OUTLOOK_ADDRESS != '' }}
 
 jobs:
   validate:
@@ -507,16 +507,16 @@ jobs:
           print(f"flaky={r['flaky']}")
           PY
 
-      - name: Email report to Gmail
-        if: always() && steps.report-summary.outputs.exists == 'true' && env.GMAIL_CONFIGURED == 'true'
+      - name: Email report to Outlook
+        if: always() && steps.report-summary.outputs.exists == 'true' && env.OUTLOOK_CONFIGURED == 'true'
         uses: dawidd6/action-send-mail@v3
         with:
-          server_address: smtp.gmail.com
-          server_port: 465
-          username: ${{ secrets.GMAIL_ADDRESS }}
-          password: ${{ secrets.GMAIL_APP_PASSWORD }}
-          from: Playwright Validation <${{ secrets.GMAIL_ADDRESS }}>
-          to: ${{ secrets.GMAIL_ADDRESS }}
+          server_address: smtp.office365.com
+          server_port: 587
+          username: ${{ secrets.OUTLOOK_ADDRESS }}
+          password: ${{ secrets.OUTLOOK_APP_PASSWORD }}
+          from: Playwright Validation <${{ secrets.OUTLOOK_ADDRESS }}>
+          to: ${{ secrets.OUTLOOK_ADDRESS }}
           subject: >-
             Playwright validation: ${{ steps.report-summary.outputs.verdict }}
             (${{ steps.report-summary.outputs.passed }}/${{ steps.report-summary.outputs.total }} passed)
