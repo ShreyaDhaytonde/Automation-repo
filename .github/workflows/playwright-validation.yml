@@ -97,26 +97,40 @@ env:
   # 'secrets'"), so the presence check is done once here, in `env:`, where
   # `secrets` is allowed, and steps gate on this plain env flag instead.
   FRONTEND_DEPLOYED: ${{ secrets.FRONTEND_URL != '' }}
-  OUTLOOK_CONFIGURED: ${{ secrets.OUTLOOK_ADDRESS != '' }}
 
+# Three jobs, each its own runner: PREPARE (checkout + install once) ->
+# VALIDATE (boot the app, run the suite) -> REPORT (merge + analyse +
+# publish). Splitting a stage out as its own job means it can be re-run on
+# its own (GitHub's "re-run failed jobs" reuses the artifacts already
+# produced by the jobs that passed) instead of always re-paying checkout +
+# install + browser download just to retry reporting, and each stage gets
+# its own timeout budget instead of sharing one 30-minute ceiling.
+#
+# What *can't* cross a job boundary as-is: a running process (the backend/
+# frontend dev servers must be started in the same job that uses them,
+# never in prepare) and anything installed outside this checkout (a plain
+# system-wide `pip install` lands in the runner's Python install, not in
+# `backend/`, so it would vanish at the job boundary -- backend deps are
+# installed into a workspace-relative `backend/.venv` instead, specifically
+# so the whole thing survives being tarred into the prepared artifact).
+# Playwright's OS-level apt dependencies (`--with-deps`) are runner-VM
+# state, not something an artifact can carry either -- the browser
+# *binary* is prepared once and handed off, but `playwright install-deps`
+# still runs again in validate, cheaply, against whatever binary the
+# prepared workspace already has.
 jobs:
-  validate:
+  prepare:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
-    permissions:
-      contents: read
-      pages: write
-      id-token: write
-    environment:
-      name: github-pages
-      url: ${{ steps.deploy-pages.outputs.page_url }}
+    timeout-minutes: 15
+    outputs:
+      slug: ${{ steps.slug.outputs.slug }}
 
     steps:
-      - name: Name this run's artifact
+      - name: Name this run's artifacts
         id: slug
         env:
           BRANCH: ${{ inputs.branch }}
-        run: echo "artifact=validation-${BRANCH//\//-}" >> "$GITHUB_OUTPUT"
+        run: echo "slug=${BRANCH//\//-}" >> "$GITHUB_OUTPUT"
 
       - name: Checkout generated tests (this repo, exact commit)
         uses: actions/checkout@v4
@@ -175,6 +189,12 @@ jobs:
         if: inputs.backend_repo != ''
         working-directory: backend
         run: |
+          # Into a venv INSIDE this checkout, not the runner's system Python --
+          # a plain `pip install` would land outside `backend/` and be lost
+          # the moment this job ends, since only this directory gets tarred
+          # into the prepared artifact for the validate job to restore.
+          python -m venv .venv
+          source .venv/bin/activate
           if [ -n "${{ inputs.backend_install_cmd }}" ]; then
             bash -c "${{ inputs.backend_install_cmd }}"
           elif [ -f requirements.txt ]; then
@@ -189,6 +209,75 @@ jobs:
               "backend must be given an explicit backend_install_cmd"
             exit 1
           fi
+
+      - name: Install test dependencies
+        working-directory: automation
+        run: |
+          if [ -f package-lock.json ]; then
+            npm ci
+          else
+            npm install
+          fi
+          npm install --no-save @playwright/test allure-playwright
+
+      - name: Install Playwright browser binaries
+        working-directory: automation
+        run: npx playwright install chromium
+        # Binary only, no --with-deps here: the OS-level apt packages this
+        # browser needs are runner-VM state and can't travel in an
+        # artifact, so validate installs those itself against this same
+        # binary via `playwright install-deps`.
+
+      - name: Package the prepared workspace
+        run: |
+          tar -czf prepared-workspace.tar.gz \
+            $(test -d frontend && echo frontend) \
+            $(test -d backend && echo backend) \
+            automation
+          tar -czf prepared-playwright-cache.tar.gz -C "$HOME" .cache/ms-playwright
+
+      - name: Upload prepared workspace
+        uses: actions/upload-artifact@v4
+        with:
+          name: prepared-${{ steps.slug.outputs.slug }}
+          path: |
+            prepared-workspace.tar.gz
+            prepared-playwright-cache.tar.gz
+          retention-days: 1
+
+  validate:
+    needs: prepare
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    outputs:
+      tests_outcome: ${{ steps.tests.outcome }}
+
+    steps:
+      - name: Download prepared workspace
+        uses: actions/download-artifact@v4
+        with:
+          name: prepared-${{ needs.prepare.outputs.slug }}
+
+      - name: Unpack prepared workspace
+        run: |
+          tar -xzf prepared-workspace.tar.gz
+          mkdir -p "$HOME/.cache"
+          tar -xzf prepared-playwright-cache.tar.gz -C "$HOME"
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Setup Python to run the backend
+        if: inputs.backend_repo != ''
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Playwright's OS-level browser dependencies
+        working-directory: automation
+        run: npx playwright install-deps chromium
 
       - name: Start backend
         if: inputs.backend_repo != ''
@@ -211,25 +300,11 @@ jobs:
                 "backend must be given an explicit backend_start_cmd"
               exit 1
             fi
-            cmd="python -m uvicorn $entry --host 0.0.0.0 --port ${{ inputs.backend_port || '8000' }}"
+            cmd="source .venv/bin/activate && python -m uvicorn $entry --host 0.0.0.0 --port ${{ inputs.backend_port || '8000' }}"
           fi
           echo "Starting backend: $cmd"
           nohup bash -c "$cmd" > "$GITHUB_WORKSPACE/backend.log" 2>&1 &
           echo $! > "$GITHUB_WORKSPACE/backend.pid"
-
-      - name: Install test dependencies
-        working-directory: automation
-        run: |
-          if [ -f package-lock.json ]; then
-            npm ci
-          else
-            npm install
-          fi
-          npm install --no-save @playwright/test allure-playwright
-
-      - name: Install Playwright browsers
-        working-directory: automation
-        run: npx playwright install --with-deps chromium
 
       - name: Backend health check
         env:
@@ -334,6 +409,8 @@ jobs:
           PLAYWRIGHT_JSON_OUTPUT_NAME: ../results/results.json
           CI: "true"
           TEST_GREP: ${{ inputs.grep }}
+          TEST_USERNAME: ${{ secrets.TEST_USERNAME }}
+          TEST_PASSWORD: ${{ secrets.TEST_PASSWORD }}
         run: |
           mkdir -p ../results
           args=(--reporter=line,json,allure-playwright --output=../results/artifacts)
@@ -343,12 +420,10 @@ jobs:
           npx playwright test "${args[@]}"
 
       - name: Collect results
-        id: collect
         run: |
           json=results/results.json
           if [ ! -f "$json" ]; then
             echo "::error title=No results::Playwright produced no JSON report"
-            echo "outcome=error" >> "$GITHUB_OUTPUT"
             exit 0
           fi
           node -e '
@@ -374,7 +449,6 @@ jobs:
             console.log(JSON.stringify(out));
             require("fs").writeFileSync("results/summary.json", JSON.stringify(out, null, 2));
           ' | tee results/summary-line.txt
-          echo "outcome=${{ steps.tests.outcome }}" >> "$GITHUB_OUTPUT"
 
       - name: Stop servers
         if: always()
@@ -385,41 +459,52 @@ jobs:
             fi
           done
 
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: results-${{ needs.prepare.outputs.slug }}
+          path: |
+            results/
+            frontend-dev.log
+            backend.log
+            automation/allure-results
+          retention-days: 1
+
+  report:
+    needs: [prepare, validate]
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout validation script (this repo, exact commit)
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.commit_sha }}
+          path: automation
+
+      - name: Download test results
+        uses: actions/download-artifact@v4
+        continue-on-error: true # nothing to download if validate crashed before uploading
+        with:
+          name: results-${{ needs.prepare.outputs.slug }}
+
+      - name: Setup Node
+        if: always()
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
       - name: Generate Allure report
         if: always()
-        working-directory: automation
         run: |
-          if [ -d allure-results ]; then
-            npx --yes allure-commandline generate allure-results \
-              --clean -o ../results/allure-report
+          if [ -d automation/allure-results ]; then
+            npx --yes allure-commandline generate automation/allure-results \
+              --clean -o results/allure-report
           else
             echo "No allure-results directory - skipping report generation."
           fi
-
-      - name: Check Allure report exists
-        if: always()
-        id: allure-check
-        run: |
-          if [ -f results/allure-report/index.html ]; then
-            echo "exists=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "exists=false" >> "$GITHUB_OUTPUT"
-          fi
-
-      # Publishes this run's Allure report to GitHub Pages -- a real, stable
-      # URL to paste into Teams/Slack, generated purely by copying static
-      # files. No LLM call anywhere in this path. Each run overwrites the
-      # site, so the URL always shows the most recent run's report.
-      - name: Upload Allure report to Pages
-        if: always() && steps.allure-check.outputs.exists == 'true'
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: results/allure-report
-
-      - name: Deploy Allure report to Pages
-        if: always() && steps.allure-check.outputs.exists == 'true'
-        id: deploy-pages
-        uses: actions/deploy-pages@v4
 
       - name: Setup Python
         if: always()
@@ -445,21 +530,14 @@ jobs:
 
       - name: Add report to run summary
         if: always()
-        env:
-          ALLURE_PAGE_URL: ${{ steps.deploy-pages.outputs.page_url }}
         run: |
           report=results/validation-report.json
           [ -f "$report" ] || exit 0
           python - <<'PY' >> "$GITHUB_STEP_SUMMARY"
           import json
-          import os
           r = json.load(open("results/validation-report.json"))
           print(f"### Validation: {r['verdict'].upper()}  (confidence {r['confidence']})")
           print()
-          page_url = os.environ.get("ALLURE_PAGE_URL")
-          if page_url:
-              print(f"**Allure report:** {page_url}")
-              print()
           print(f"- {r['passed']}/{r['total']} passed, {r['failed']} failed, "
                 f"{r['flaky']} flaky, {r['skipped']} skipped")
           print(f"- confidence: {r['confidence']} - {r['confidence_reason']}")
@@ -480,60 +558,11 @@ jobs:
           print(r["summary"])
           PY
 
-      # Deterministic values only -- no LLM call. Pulled from the report JSON
-      # already written above, plus the Pages URL, which is always
-      # https://<owner>.github.io/<repo>/ since the deploy step earlier in
-      # this job overwrites that same site on every run.
-      - name: Extract report summary for email
-        if: always()
-        id: report-summary
-        run: |
-          report=results/validation-report.json
-          if [ ! -f "$report" ]; then
-            echo "exists=false" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-          echo "exists=true" >> "$GITHUB_OUTPUT"
-          owner_lower=$(echo "$GITHUB_REPOSITORY_OWNER" | tr '[:upper:]' '[:lower:]')
-          repo_name="${GITHUB_REPOSITORY#*/}"
-          echo "pages_url=https://${owner_lower}.github.io/${repo_name}/" >> "$GITHUB_OUTPUT"
-          python - <<'PY' >> "$GITHUB_OUTPUT"
-          import json
-          r = json.load(open("results/validation-report.json"))
-          print(f"verdict={r['verdict']}")
-          print(f"total={r['total']}")
-          print(f"passed={r['passed']}")
-          print(f"failed={r['failed']}")
-          print(f"flaky={r['flaky']}")
-          PY
-
-      - name: Email report to Outlook
-        if: always() && steps.report-summary.outputs.exists == 'true' && env.OUTLOOK_CONFIGURED == 'true'
-        uses: dawidd6/action-send-mail@v3
-        with:
-          server_address: smtp.office365.com
-          server_port: 587
-          username: ${{ secrets.OUTLOOK_ADDRESS }}
-          password: ${{ secrets.OUTLOOK_APP_PASSWORD }}
-          from: Playwright Validation <${{ secrets.OUTLOOK_ADDRESS }}>
-          to: ${{ secrets.OUTLOOK_ADDRESS }}
-          subject: >-
-            Playwright validation: ${{ steps.report-summary.outputs.verdict }}
-            (${{ steps.report-summary.outputs.passed }}/${{ steps.report-summary.outputs.total }} passed)
-          body: |
-            Verdict: ${{ steps.report-summary.outputs.verdict }}
-            Passed: ${{ steps.report-summary.outputs.passed }}/${{ steps.report-summary.outputs.total }}
-            Failed: ${{ steps.report-summary.outputs.failed }}
-            Flaky: ${{ steps.report-summary.outputs.flaky }}
-
-            Report: ${{ steps.report-summary.outputs.pages_url }}
-            Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-
       - name: Upload validation artifacts
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ steps.slug.outputs.artifact }}
+          name: validation-${{ needs.prepare.outputs.slug }}
           path: |
             results/
             frontend-dev.log
@@ -551,4 +580,4 @@ jobs:
           if [ -f results/summary-line.txt ]; then
             echo "- results: \`$(cat results/summary-line.txt)\`" >> "$GITHUB_STEP_SUMMARY"
           fi
-          echo "- suite: ${{ steps.tests.outcome }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- suite: ${{ needs.validate.outputs.tests_outcome }}" >> "$GITHUB_STEP_SUMMARY"
