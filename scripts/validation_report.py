@@ -199,6 +199,18 @@ def _walk_specs(suites: list[dict], path: str = "") -> Any:
         yield from _walk_specs(suite.get("suites", []) or [], current)
 
 
+_ANSI_ESCAPE_PATTERN = re.compile(r"\x1b\[[0-9;]*m")
+
+
+def _strip_ansi(text: str) -> str:
+    """Playwright's error messages carry ANSI color codes meant for a real
+    terminal (dimming 'locator', coloring Expected/Received, ...). Anything
+    downstream that displays this as plain text -- the PR comment, a
+    dashboard summary -- can't interpret them, so they'd show up as literal
+    '[2m', '[31m', ... in the rendered text without this."""
+    return _ANSI_ESCAPE_PATTERN.sub("", text)
+
+
 def _error_text(test: dict) -> str:
     parts: list[str] = []
     for result in test.get("results", []) or []:
@@ -209,7 +221,7 @@ def _error_text(test: dict) -> str:
             parts.append(str(result["error"]["message"]))
         if result.get("errors") is None and result.get("stderr"):
             parts.append("".join(str(s) for s in result["stderr"]))
-    return "\n".join(parts)
+    return _strip_ansi("\n".join(parts))
 
 
 def build_report(results: dict) -> Report:
