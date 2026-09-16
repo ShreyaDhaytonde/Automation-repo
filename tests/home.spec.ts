@@ -13,11 +13,11 @@ test.describe('Home', () => {
   test('TC01 - Home page - loads and displays initial UI controls', async ({ page }) => {
     await page.goto('/');
     await expect(page.getByRole('heading', { name: 'Habit Tracker' })).toBeVisible();
-    await expect(page.getByRole('textbox', { name: 'Search habits by name' })).toBeVisible();
+    await expect(page.getByRole('searchbox', { name: 'Search habits by name' })).toBeVisible();
     await expect(page.getByLabel('Sort habits by')).toBeVisible();
     await expect(page.getByLabel('Filter by category')).toBeVisible();
     await expect(page.getByRole('checkbox', { name: 'Show archived' })).toBeVisible();
-    await expect(page.getByRole('button', { name: /Complete all for today/ })).toBeVisible();
+    await expect(page.getByRole('button', { name: /^Complete all for today/ })).toBeVisible();
     await expect(page.getByRole('button', { name: 'Add habit' })).toBeVisible();
     await expect(page.getByRole('link', { name: 'View stats' })).toBeVisible();
     await expect(page.getByRole('button', { name: 'Export JSON' })).toBeVisible();
@@ -165,7 +165,7 @@ test.describe('Home', () => {
     const habitName = `SearchHabit ${Date.now()}`;
     await page.getByLabel('New habit name').fill(habitName);
     await page.getByRole('button', { name: 'Add habit' }).click();
-    await page.getByRole('textbox', { name: 'Search habits by name' }).fill(habitName.slice(0, 5));
+    await page.getByLabel('Search habits by name').fill(habitName.slice(0, 5));
     const filteredCard = page.getByRole('listitem').filter({ hasText: habitName });
     await expect(filteredCard).toBeVisible();
   });
@@ -197,7 +197,7 @@ test.describe('Home', () => {
     await page.getByRole('button', { name: 'Add habit' }).click();
     await page.getByLabel('Sort habits by').selectOption('name');
     const listItems = page.getByRole('listitem');
-    await expect(listItems).toHaveCountGreaterThan(1);
+    await expect(listItems).toHaveCountGreaterThan === undefined ? expect(await listItems.count()).toBeGreaterThan(1) : await expect(listItems).toHaveCountGreaterThan(1);
     const firstItemText = await listItems.nth(0).textContent();
     await expect(firstItemText).toContain('AlphaHabit');
   });
