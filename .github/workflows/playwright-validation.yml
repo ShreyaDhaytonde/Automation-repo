@@ -413,7 +413,14 @@ jobs:
           TEST_PASSWORD: ${{ secrets.TEST_PASSWORD }}
         run: |
           mkdir -p ../results
-          args=(--reporter=line,json,allure-playwright --output=../results/artifacts)
+          # max-failures caps how much a systemic problem (app down, session
+          # expired, wrong baseURL -- anything that fails EVERY test the
+          # same way) can cost: without it, a broken environment burns the
+          # full test count on 60s-per-test timeouts until the job's overall
+          # timeout-minutes kills the whole run with zero results.json ever
+          # written. Bailing after 10 gives a JSON report (this is a normal
+          # early exit, not a crash) and a fast, readable signal instead.
+          args=(--reporter=line,json,allure-playwright --output=../results/artifacts --max-failures=10)
           if [ -n "$TEST_GREP" ]; then
             args+=(--grep "$TEST_GREP")
           fi
