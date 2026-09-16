@@ -115,14 +115,12 @@ test.describe('Home', () => {
   test('TC05 - HabitCard - deletes a habit after confirmation', async ({ page }) => {
     await page.goto('/');
     const habitName = `Habit ${Date.now()}`;
-    const nameInput = page.getByRole('textbox', { name: 'New habit name' });
-    const addButton = page.getByRole('button', { name: 'Add habit' });
-    await nameInput.fill(habitName);
-    await addButton.click();
+    await page.getByRole('textbox', { name: 'New habit name' }).fill(habitName);
+    await page.getByRole('button', { name: 'Add habit' }).click();
     const card = page.getByRole('listitem').filter({ hasText: habitName });
     const [dialog] = await Promise.all([
       page.waitForEvent('dialog'),
-      card.getByRole('button', { name: `Remove` }).click(),
+      card.getByRole('button', { name: 'Remove' }).click(),
     ]);
     await dialog.accept();
     await expect(page.getByRole('listitem').filter({ hasText: habitName })).toHaveCount(0);
