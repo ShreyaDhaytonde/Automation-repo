@@ -413,14 +413,15 @@ jobs:
           TEST_PASSWORD: ${{ secrets.TEST_PASSWORD }}
         run: |
           mkdir -p ../results
-          # max-failures caps how much a systemic problem (app down, session
-          # expired, wrong baseURL -- anything that fails EVERY test the
-          # same way) can cost: without it, a broken environment burns the
-          # full test count on 60s-per-test timeouts until the job's overall
-          # timeout-minutes kills the whole run with zero results.json ever
-          # written. Bailing after 10 gives a JSON report (this is a normal
-          # early exit, not a crash) and a fast, readable signal instead.
-          args=(--reporter=line,json,allure-playwright --output=../results/artifacts --max-failures=10)
+          # max-failures is a safety cap against a truly systemic problem (app down,
+          # session expired, wrong baseURL -- anything that fails EVERY test the same
+          # way) burning the full test count on 60s-per-test timeouts until the job's
+          # overall timeout-minutes kills the whole run with zero results.json ever
+          # written. It is deliberately high (100) now -- independent, unrelated
+          # failures should all get to run; the agent's own shard-until-complete loop
+          # (src/agent/agent.py, MAX_COMPLETION_ROUNDS) is what schedules follow-up runs
+          # for anything this cap still leaves not-executed, not this flag itself.
+          args=(--reporter=line,json,allure-playwright --output=../results/artifacts --max-failures=100)
           if [ -n "$TEST_GREP" ]; then
             args+=(--grep "$TEST_GREP")
           fi
@@ -526,6 +527,33 @@ jobs:
           publish_dir: results/allure-report
           publish_branch: gh-pages
           destination_dir: ${{ inputs.branch }}/${{ github.run_id }}
+          keep_files: true
+
+      # The per-run report above never touches the Pages root, so the bare Pages URL
+      # (what GitHub Settings and the API's html_url both show) 404s with no report
+      # ever published there. This keeps a root landing page pointing at the report
+      # this run just published, so that URL always resolves to something current.
+      - name: Update Pages landing page
+        if: always() && hashFiles('results/allure-report/index.html') != ''
+        run: |
+          mkdir -p pages-root
+          cat > pages-root/index.html <<HTML
+          <!doctype html>
+          <html><head><meta charset="utf-8"><title>Playwright validation reports</title></head>
+          <body>
+            <h1>Playwright validation reports</h1>
+            <p>Most recent: <a href="${{ inputs.branch }}/${{ github.run_id }}/">${{ inputs.branch }} (run ${{ github.run_id }})</a></p>
+            <p>Every branch's reports live under <code>&lt;branch&gt;/&lt;run_id&gt;/</code> on this same site.</p>
+          </body></html>
+          HTML
+
+      - name: Publish Pages landing page
+        if: always() && hashFiles('results/allure-report/index.html') != ''
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: pages-root
+          publish_branch: gh-pages
           keep_files: true
 
       - name: Setup Python
