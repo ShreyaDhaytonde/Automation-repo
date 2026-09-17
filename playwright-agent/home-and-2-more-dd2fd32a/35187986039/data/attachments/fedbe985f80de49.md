@@ -1,0 +1,421 @@
+# Instructions
+
+- Following Playwright test failed.
+- Explain why, be concise, respect Playwright best practices.
+- Provide a snippet of code with the fix, if possible.
+
+# Test info
+
+- Name: home.spec.ts >> Home >> TC08 - HabitCard - archive and unarchive habit toggles button label and aria-label
+- Location: tests/home.spec.ts:160:7
+
+# Error details
+
+```
+Error: locator.click: Error: strict mode violation: getByRole('listitem').filter({ hasText: 'Habit Archive 1789625025440' }).getByRole('button', { name: 'Archive' }) resolved to 4 elements:
+    1) <button aria-label="Freeze Habit Archive 1789625025440 for today" class="rounded-full px-3 py-1 text-sm text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-900 dark:hover:bg-zinc-800 dark:hover:text-zinc-100 ">🧊 Freeze</button> aka getByRole('button', { name: 'Freeze Habit Archive 1789625025440 for today' })
+    2) <button aria-label="Edit Habit Archive 1789625025440" class="rounded-full px-3 py-1 text-sm text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-900 dark:hover:bg-zinc-800 dark:hover:text-zinc-100">Edit</button> aka getByRole('button', { name: 'Edit Habit Archive 1789625025440' })
+    3) <button aria-label="Archive Habit Archive 1789625025440" class="rounded-full px-3 py-1 text-sm text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-900 dark:hover:bg-zinc-800 dark:hover:text-zinc-100">Archive</button> aka getByRole('button', { name: 'Archive Habit Archive 1789625025440' })
+    4) <button aria-label="Delete Habit Archive 1789625025440" class="rounded-full px-3 py-1 text-sm text-zinc-500 transition-colors hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/40">Remove</button> aka getByRole('button', { name: 'Delete Habit Archive 1789625025440' })
+
+Call log:
+  - waiting for getByRole('listitem').filter({ hasText: 'Habit Archive 1789625025440' }).getByRole('button', { name: 'Archive' })
+
+```
+
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - main [ref=e3]:
+    - generic [ref=e4]:
+      - generic [ref=e5]:
+        - heading "Habit Tracker" [level=1] [ref=e6]
+        - paragraph [ref=e7]: Build small daily habits, one day at a time.
+      - generic [ref=e8]:
+        - link "View stats" [ref=e9] [cursor=pointer]:
+          - /url: /stats
+        - button "Switch to dark mode" [ref=e10]: 🌙 Dark
+        - button "Logout" [ref=e11]
+    - generic [ref=e13]:
+      - textbox "New habit name" [ref=e14]:
+        - /placeholder: e.g. Drink more water
+      - combobox "Habit category" [ref=e15]:
+        - option "General" [selected]
+        - option "Health"
+        - option "Work"
+        - option "Personal"
+        - option "Learning"
+      - combobox "Times per week" [ref=e16]:
+        - option "1x / week"
+        - option "2x / week"
+        - option "3x / week"
+        - option "4x / week"
+        - option "5x / week"
+        - option "6x / week"
+        - option "7x / week" [selected]
+      - textbox "Notes (optional)" [ref=e17]
+      - button "Add habit" [disabled] [ref=e18]
+    - generic [ref=e19]:
+      - generic [ref=e20]: Search habits by name
+      - searchbox "Search habits by name" [ref=e21]
+      - generic [ref=e22]: Sort by
+      - combobox "Sort habits by" [ref=e23]:
+        - option "Name (A-Z)" [selected]
+        - option "Streak (highest first)"
+        - option "Category"
+        - option "Weekly target (highest first)"
+    - generic [ref=e24]:
+      - generic [ref=e25]:
+        - generic [ref=e26]: Filter by category
+        - combobox "Filter by category" [ref=e27]:
+          - option "All" [selected]
+          - option "General"
+          - option "Health"
+          - option "Work"
+          - option "Personal"
+          - option "Learning"
+      - generic [ref=e28]:
+        - checkbox "Show archived" [ref=e29]
+        - text: Show archived
+      - generic [ref=e30]:
+        - button "Complete all for today (7)" [ref=e31]
+        - button "Export JSON" [ref=e32]
+        - button "Export CSV" [ref=e33]
+    - list [ref=e34]:
+      - listitem [ref=e35]:
+        - generic [ref=e36]:
+          - generic [ref=e37]:
+            - paragraph [ref=e38]: Habit Archive 1789625023665
+            - generic [ref=e39]: General
+            - status "Habit Archive 1789625023665 is at risk of missing its weekly goal" [ref=e40]: ⏰ Due today
+          - paragraph [ref=e41]: Start your streak today!
+          - generic [ref=e42]:
+            - progressbar "Habit Archive 1789625023665 weekly progress" [ref=e43]
+            - generic [ref=e44]: 0/7 this week
+        - generic [ref=e45]:
+          - button "Mark done" [ref=e46]
+          - button "Freeze Habit Archive 1789625023665 for today" [ref=e47]: 🧊 Freeze
+          - button "Edit Habit Archive 1789625023665" [ref=e48]: Edit
+          - button "Archive Habit Archive 1789625023665" [ref=e49]: Archive
+          - button "Delete Habit Archive 1789625023665" [ref=e50]: Remove
+      - listitem [ref=e51]:
+        - generic [ref=e52]:
+          - generic [ref=e53]:
+            - paragraph [ref=e54]: Habit Archive 1789625025440
+            - generic [ref=e55]: General
+            - status "Habit Archive 1789625025440 is at risk of missing its weekly goal" [ref=e56]: ⏰ Due today
+          - paragraph [ref=e57]: Start your streak today!
+          - generic [ref=e58]:
+            - progressbar "Habit Archive 1789625025440 weekly progress" [ref=e59]
+            - generic [ref=e60]: 0/7 this week
+        - generic [ref=e61]:
+          - button "Mark done" [ref=e62]
+          - button "Freeze Habit Archive 1789625025440 for today" [ref=e63]: 🧊 Freeze
+          - button "Edit Habit Archive 1789625025440" [ref=e64]: Edit
+          - button "Archive Habit Archive 1789625025440" [ref=e65]: Archive
+          - button "Delete Habit Archive 1789625025440" [ref=e66]: Remove
+      - listitem [ref=e67]:
+        - generic [ref=e68]:
+          - generic [ref=e69]:
+            - paragraph [ref=e70]: Habit Edited 1789624990314
+            - generic [ref=e71]: Health
+          - paragraph [ref=e72]: Start your streak today!
+          - generic [ref=e73]:
+            - progressbar "Habit Edited 1789624990314 weekly progress" [ref=e74]
+            - generic [ref=e75]: 0/3 this week
+          - paragraph [ref=e76]: Updated notes
+        - generic [ref=e77]:
+          - button "Mark done" [ref=e78]
+          - button "Freeze Habit Edited 1789624990314 for today" [ref=e79]: 🧊 Freeze
+          - button "Edit Habit Edited 1789624990314" [ref=e80]: Edit
+          - button "Archive Habit Edited 1789624990314" [ref=e81]: Archive
+          - button "Delete Habit Edited 1789624990314" [ref=e82]: Remove
+      - listitem [ref=e83]:
+        - generic [ref=e84]:
+          - generic [ref=e85]:
+            - paragraph [ref=e86]: Habit Edited 1789624992550
+            - generic [ref=e87]: Health
+          - paragraph [ref=e88]: Start your streak today!
+          - generic [ref=e89]:
+            - progressbar "Habit Edited 1789624992550 weekly progress" [ref=e90]
+            - generic [ref=e91]: 0/3 this week
+          - paragraph [ref=e92]: Updated notes
+        - generic [ref=e93]:
+          - button "Mark done" [ref=e94]
+          - button "Freeze Habit Edited 1789624992550 for today" [ref=e95]: 🧊 Freeze
+          - button "Edit Habit Edited 1789624992550" [ref=e96]: Edit
+          - button "Archive Habit Edited 1789624992550" [ref=e97]: Archive
+          - button "Delete Habit Edited 1789624992550" [ref=e98]: Remove
+      - listitem [ref=e99]:
+        - generic [ref=e100]:
+          - generic [ref=e101]:
+            - paragraph [ref=e102]: Habit Freeze 1789625020120
+            - generic [ref=e103]: General
+            - status "Habit Freeze 1789625020120 is at risk of missing its weekly goal" [ref=e104]: ⏰ Due today
+          - paragraph [ref=e105]: Start your streak today!
+          - generic [ref=e106]:
+            - progressbar "Habit Freeze 1789625020120 weekly progress" [ref=e107]
+            - generic [ref=e108]: 0/7 this week
+        - generic [ref=e109]:
+          - button "Mark done" [ref=e110]
+          - button "Freeze Habit Freeze 1789625020120 for today" [ref=e111]: 🧊 Freeze
+          - button "Edit Habit Freeze 1789625020120" [ref=e112]: Edit
+          - button "Archive Habit Freeze 1789625020120" [ref=e113]: Archive
+          - button "Delete Habit Freeze 1789625020120" [ref=e114]: Remove
+      - listitem [ref=e115]:
+        - generic [ref=e116]:
+          - generic [ref=e117]:
+            - paragraph [ref=e118]: Habit Freeze 1789625021872
+            - generic [ref=e119]: General
+            - status "Habit Freeze 1789625021872 is at risk of missing its weekly goal" [ref=e120]: ⏰ Due today
+          - paragraph [ref=e121]: Start your streak today!
+          - generic [ref=e122]:
+            - progressbar "Habit Freeze 1789625021872 weekly progress" [ref=e123]
+            - generic [ref=e124]: 0/7 this week
+        - generic [ref=e125]:
+          - button "Mark done" [ref=e126]
+          - button "Freeze Habit Freeze 1789625021872 for today" [ref=e127]: 🧊 Freeze
+          - button "Edit Habit Freeze 1789625021872" [ref=e128]: Edit
+          - button "Archive Habit Freeze 1789625021872" [ref=e129]: Archive
+          - button "Delete Habit Freeze 1789625021872" [ref=e130]: Remove
+      - listitem [ref=e131]:
+        - generic [ref=e132]:
+          - generic [ref=e133]:
+            - paragraph [ref=e134]: HabitCompleteAll1 1789624994718
+            - generic [ref=e135]: General
+          - paragraph [ref=e136]: 🔥 1 day streak
+          - generic [ref=e137]:
+            - progressbar "HabitCompleteAll1 1789624994718 weekly progress" [ref=e138]
+            - generic [ref=e140]: 1/7 this week
+        - generic [ref=e141]:
+          - button "Done today" [disabled] [ref=e142]
+          - button "Freeze HabitCompleteAll1 1789624994718 for today" [disabled] [ref=e143]: 🧊 Freeze
+          - button "Edit HabitCompleteAll1 1789624994718" [ref=e144]: Edit
+          - button "Archive HabitCompleteAll1 1789624994718" [ref=e145]: Archive
+          - button "Delete HabitCompleteAll1 1789624994718" [ref=e146]: Remove
+      - listitem [ref=e147]:
+        - generic [ref=e148]:
+          - generic [ref=e149]:
+            - paragraph [ref=e150]: HabitCompleteAll2 1789624994718
+            - generic [ref=e151]: General
+            - status "HabitCompleteAll2 1789624994718 is at risk of missing its weekly goal" [ref=e152]: ⏰ Due today
+          - paragraph [ref=e153]: Start your streak today!
+          - generic [ref=e154]:
+            - progressbar "HabitCompleteAll2 1789624994718 weekly progress" [ref=e155]
+            - generic [ref=e156]: 0/7 this week
+        - generic [ref=e157]:
+          - button "Mark done" [ref=e158]
+          - button "Freeze HabitCompleteAll2 1789624994718 for today" [ref=e159]: 🧊 Freeze
+          - button "Edit HabitCompleteAll2 1789624994718" [ref=e160]: Edit
+          - button "Archive HabitCompleteAll2 1789624994718" [ref=e161]: Archive
+          - button "Delete HabitCompleteAll2 1789624994718" [ref=e162]: Remove
+  - alert [ref=e163]
+```
+
+# Test source
+
+```ts
+  67  | 
+  68  |   /**
+  69  |    * TC04: HabitCard - edit habit details and save updates the card
+  70  |    */
+  71  |   test('TC04 - HabitCard - edit habit details and save updates the card', async ({ page }) => {
+  72  |     await page.goto("/");
+  73  |     const habitName = `Habit Edit ${Date.now()}`;
+  74  |     await page.getByRole("textbox", { name: "New habit name" }).fill(habitName);
+  75  |     await page.getByRole("button", { name: "Add habit" }).click();
+  76  |     const habitCard = page.getByRole("listitem").filter({ hasText: habitName });
+  77  |     await habitCard.getByRole("button", { name: `Edit ${habitName}` }).click();
+  78  |     const editNameInput = page.getByLabel(`Edit name for ${habitName}`);
+  79  |     await expect(editNameInput).toHaveValue(habitName);
+  80  |     const newName = `Habit Edited ${Date.now()}`;
+  81  |     await editNameInput.fill(newName);
+  82  |     await page.getByLabel(`Edit category for ${habitName}`).selectOption("Health");
+  83  |     await page.getByLabel(`Edit times per week for ${habitName}`).selectOption("3");
+  84  |     await page.getByLabel(`Edit notes for ${habitName}`).fill("Updated notes");
+  85  |     await page.getByRole("button", { name: "Save" }).click();
+  86  |     await expect(page.getByText(newName)).toBeVisible();
+  87  |     await expect(page.getByRole("button", { name: `Edit ${newName}` })).toBeVisible();
+  88  |   });
+  89  | 
+  90  |   // ──────────────────────────────────────────────────────────────────────────
+  91  |   // SECTION 5: HabitCard deletion
+  92  |   // ──────────────────────────────────────────────────────────────────────────
+  93  | 
+  94  |   /**
+  95  |    * TC05: HabitCard - delete habit confirms prompt and removes habit from list
+  96  |    */
+  97  |   test('TC05 - HabitCard - delete habit confirms prompt and removes habit from list', async ({ page }) => {
+  98  |     await page.goto("/");
+  99  |     const habitName = `Habit Delete ${Date.now()}`;
+  100 |     await page.getByRole("textbox", { name: "New habit name" }).fill(habitName);
+  101 |     await page.getByRole("button", { name: "Add habit" }).click();
+  102 |     const habitCard = page.getByRole("listitem").filter({ hasText: habitName });
+  103 |     page.once("dialog", (dialog) => dialog.accept());
+  104 |     await habitCard.getByRole("button", { name: `Delete ${habitName}` }).click();
+  105 |     await expect(page.getByText(habitName)).toHaveCount(0);
+  106 |   });
+  107 | 
+  108 |   // ──────────────────────────────────────────────────────────────────────────
+  109 |   // SECTION 6: Bulk actions
+  110 |   // ──────────────────────────────────────────────────────────────────────────
+  111 | 
+  112 |   /**
+  113 |    * TC06: Home - complete all button completes all pending habits
+  114 |    */
+  115 |   test('TC06 - Home - complete all button completes all pending habits', async ({ page }) => {
+  116 |     await page.goto("/");
+  117 |     const habitName1 = `HabitCompleteAll1 ${Date.now()}`;
+  118 |     const habitName2 = `HabitCompleteAll2 ${Date.now()}`;
+  119 |     await page.getByRole("textbox", { name: "New habit name" }).fill(habitName1);
+  120 |     await page.getByRole("button", { name: "Add habit" }).click();
+  121 |     await page.getByRole("textbox", { name: "New habit name" }).fill(habitName2);
+  122 |     await page.getByRole("button", { name: "Add habit" }).click();
+  123 |     await page.getByRole("button", { name: /^Complete all for today/ }).click();
+  124 |     const card1 = page.getByRole("listitem").filter({ hasText: habitName1 });
+  125 |     await expect(card1.getByRole("button", { name: "Done today" })).toBeDisabled();
+  126 |     const card2 = page.getByRole("listitem").filter({ hasText: habitName2 });
+  127 |     await expect(card2.getByRole("button", { name: "Done today" })).toBeDisabled();
+  128 |   });
+  129 | 
+  130 |   // ──────────────────────────────────────────────────────────────────────────
+  131 |   // SECTION 7: HabitCard freeze toggle
+  132 |   // ──────────────────────────────────────────────────────────────────────────
+  133 | 
+  134 |   /**
+  135 |    * TC07: HabitCard - freeze and unfreeze habit toggles freeze button label and aria-label
+  136 |    */
+  137 |   test('TC07 - HabitCard - freeze and unfreeze habit toggles freeze button label and aria-label', async ({ page }) => {
+  138 |     await page.goto("/");
+  139 |     const habitName = `Habit Freeze ${Date.now()}`;
+  140 |     await page.getByRole("textbox", { name: "New habit name" }).fill(habitName);
+  141 |     await page.getByRole("button", { name: "Add habit" }).click();
+  142 |     const habitCard = page.getByRole("listitem").filter({ hasText: habitName });
+  143 |     const freezeButton = habitCard.getByRole("button", { name: `Freeze` });
+  144 |     await freezeButton.click();
+  145 |     await expect(habitCard.getByRole("button", { name: `Unfreeze` })).toBeVisible();
+  146 |     await expect(habitCard.getByRole("button", { name: `Unfreeze` })).toHaveAttribute("aria-label", `Unfreeze ${habitName}`);
+  147 |     const unfreezeButton = habitCard.getByRole("button", { name: `Unfreeze` });
+  148 |     await unfreezeButton.click();
+  149 |     await expect(habitCard.getByRole("button", { name: `Freeze` })).toBeVisible();
+  150 |     await expect(habitCard.getByRole("button", { name: `Freeze` })).toHaveAttribute("aria-label", `Freeze ${habitName} for today`);
+  151 |   });
+  152 | 
+  153 |   // ──────────────────────────────────────────────────────────────────────────
+  154 |   // SECTION 8: HabitCard archive toggle
+  155 |   // ──────────────────────────────────────────────────────────────────────────
+  156 | 
+  157 |   /**
+  158 |    * TC08: HabitCard - archive and unarchive habit toggles button label and aria-label
+  159 |    */
+  160 |   test('TC08 - HabitCard - archive and unarchive habit toggles button label and aria-label', async ({ page }) => {
+  161 |     await page.goto("/");
+  162 |     const habitName = `Habit Archive ${Date.now()}`;
+  163 |     await page.getByRole("textbox", { name: "New habit name" }).fill(habitName);
+  164 |     await page.getByRole("button", { name: "Add habit" }).click();
+  165 |     const habitCard = page.getByRole("listitem").filter({ hasText: habitName });
+  166 |     const archiveButton = habitCard.getByRole("button", { name: `Archive` });
+> 167 |     await archiveButton.click();
+      |                         ^ Error: locator.click: Error: strict mode violation: getByRole('listitem').filter({ hasText: 'Habit Archive 1789625025440' }).getByRole('button', { name: 'Archive' }) resolved to 4 elements:
+  168 |     await expect(habitCard.getByRole("button", { name: `Unarchive` })).toBeVisible();
+  169 |     await expect(habitCard.getByRole("button", { name: `Unarchive` })).toHaveAttribute("aria-label", `Unarchive ${habitName}`);
+  170 |     const unarchiveButton = habitCard.getByRole("button", { name: `Unarchive` });
+  171 |     await unarchiveButton.click();
+  172 |     await expect(habitCard.getByRole("button", { name: `Archive` })).toBeVisible();
+  173 |     await expect(habitCard.getByRole("button", { name: `Archive` })).toHaveAttribute("aria-label", `Archive ${habitName}`);
+  174 |   });
+  175 | 
+  176 |   // ──────────────────────────────────────────────────────────────────────────
+  177 |   // SECTION 9: Search and filter
+  178 |   // ──────────────────────────────────────────────────────────────────────────
+  179 | 
+  180 |   /**
+  181 |    * TC09: Home - search filters visible habits by matching name
+  182 |    */
+  183 |   test('TC09 - Home - search filters visible habits by matching name', async ({ page }) => {
+  184 |     await page.goto("/");
+  185 |     const uniqueName = `HabitSearchFilter${Date.now()}`;
+  186 |     await page.getByRole("textbox", { name: "New habit name" }).fill(uniqueName);
+  187 |     await page.getByRole("button", { name: "Add habit" }).click();
+  188 |     await page.getByRole("textbox", { name: "Search habits by name" }).fill(uniqueName);
+  189 |     const filteredHabit = page.getByRole("listitem").filter({ hasText: uniqueName });
+  190 |     await expect(filteredHabit).toBeVisible();
+  191 |     await expect(page.getByText(`No habits match "${uniqueName}".`)).toHaveCount(0);
+  192 |   });
+  193 | 
+  194 |   /**
+  195 |    * TC10: Home - category filter filters visible habits by selected category
+  196 |    */
+  197 |   test('TC10 - Home - category filter filters visible habits by selected category', async ({ page }) => {
+  198 |     await page.goto("/");
+  199 |     const category = "Health";
+  200 |     const habitName = `HabitCategoryFilter${Date.now()}`;
+  201 |     await page.getByRole("textbox", { name: "New habit name" }).fill(habitName);
+  202 |     await page.getByLabel("Habit category").selectOption(category);
+  203 |     await page.getByRole("button", { name: "Add habit" }).click();
+  204 |     await page.getByLabel("Filter by category").selectOption(category);
+  205 |     const filteredHabit = page.getByRole("listitem").filter({ hasText: habitName });
+  206 |     await expect(filteredHabit).toBeVisible();
+  207 |     await expect(page.getByText(`No habits in the "${category}" category yet.`)).toHaveCount(0);
+  208 |   });
+  209 | 
+  210 |   /**
+  211 |    * TC11: Home - sort select sorts visible habits by selected option
+  212 |    */
+  213 |   test('TC11 - Home - sort select sorts visible habits by selected option', async ({ page }) => {
+  214 |     await page.goto("/");
+  215 |     const uniqueName = `HabitSortTest${Date.now()}`;
+  216 |     await page.getByRole("textbox", { name: "New habit name" }).fill(uniqueName);
+  217 |     await page.getByRole("button", { name: "Add habit" }).click();
+  218 |     for (const opt of ["name", "streak", "category", "target_per_week"]) {
+  219 |       await page.getByLabel("Sort habits by").selectOption(opt);
+  220 |       const habitCard = page.getByRole("listitem").filter({ hasText: uniqueName });
+  221 |       await expect(habitCard).toBeVisible();
+  222 |     }
+  223 |   });
+  224 | 
+  225 |   /**
+  226 |    * TC12: Home - show archived toggle includes archived habits in list
+  227 |    */
+  228 |   test('TC12 - Home - show archived toggle includes archived habits in list', async ({ page }) => {
+  229 |     await page.goto("/");
+  230 |     const habitName = `HabitArchiveFilter${Date.now()}`;
+  231 |     await page.getByRole("textbox", { name: "New habit name" }).fill(habitName);
+  232 |     await page.getByRole("button", { name: "Add habit" }).click();
+  233 |     const habitCard = page.getByRole("listitem").filter({ hasText: habitName });
+  234 |     const archiveButton = habitCard.getByRole("button", { name: `Archive` });
+  235 |     await archiveButton.click();
+  236 |     await expect(page.getByText(habitName)).toHaveCount(0);
+  237 |     await page.getByLabel("Show archived").check();
+  238 |     const archivedHabitCard = page.getByRole("listitem").filter({ hasText: habitName });
+  239 |     await expect(archivedHabitCard).toBeVisible();
+  240 |   });
+  241 | 
+  242 |   // ──────────────────────────────────────────────────────────────────────────
+  243 |   // SECTION 10: Export buttons
+  244 |   // ──────────────────────────────────────────────────────────────────────────
+  245 | 
+  246 |   /**
+  247 |    * TC13: Home - export JSON and CSV buttons enabled state reflect habit list
+  248 |    */
+  249 |   test('TC13 - Home - export JSON and CSV buttons enabled state reflect habit list', async ({ page }) => {
+  250 |     await page.goto("/");
+  251 |     const exportJsonButton = page.getByRole("button", { name: "Export JSON" });
+  252 |     const exportCsvButton = page.getByRole("button", { name: "Export CSV" });
+  253 |     await expect(exportJsonButton).toBeDisabled();
+  254 |     await expect(exportCsvButton).toBeDisabled();
+  255 |     const habitName = `HabitExportTest ${Date.now()}`;
+  256 |     await page.getByRole("textbox", { name: "New habit name" }).fill(habitName);
+  257 |     await page.getByRole("button", { name: "Add habit" }).click();
+  258 |     await expect(exportJsonButton).toBeEnabled();
+  259 |     await expect(exportCsvButton).toBeEnabled();
+  260 |   });
+  261 | 
+  262 |   // ──────────────────────────────────────────────────────────────────────────
+  263 |   // SECTION 11: LogoutButton behavior
+  264 |   // ──────────────────────────────────────────────────────────────────────────
+  265 | 
+  266 |   /**
+  267 |    * TC14: LogoutButton - click logout navigates to /login
+```
