@@ -175,8 +175,9 @@ test.describe('Home', () => {
     await page.getByRole("textbox", { name: "New habit name" }).fill(habitName);
     await page.getByRole("button", { name: "Add habit" }).click();
     const card = page.getByRole("listitem").filter({ hasText: habitName });
-    await card.getByRole("button", { name: "Mark done", exact: true }).click();
-    await expect(card.getByRole("button", { name: "Done today", exact: true })).toBeDisabled();
+    const doneButtons = card.getByRole("button", { name: "Done today", exact: true });
+    await expect(doneButtons).toHaveCount(1);
+    await expect(doneButtons.first()).toBeDisabled();
   });
 
   /**

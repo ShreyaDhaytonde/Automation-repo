@@ -4,7 +4,7 @@ test.describe('Login', () => {
   test.setTimeout(60000);
 
   // ──────────────────────────────────────────────────────────────────────────
-  // SECTION 1: Login page initial render
+  // SECTION 1: Page load
   // ──────────────────────────────────────────────────────────────────────────
 
   /**
@@ -21,34 +21,38 @@ test.describe('Login', () => {
   });
 
   // ──────────────────────────────────────────────────────────────────────────
-  // SECTION 2: Login functionality
+  // SECTION 2: Login validation
   // ──────────────────────────────────────────────────────────────────────────
 
   /**
-   * TC02: LoginPage - successful login with valid name and password navigates to home
+   * TC02: LoginPage - invalid login shows error message without navigation
    */
-  test('TC02 - LoginPage - successful login with valid name and password navigates to home', async ({ page }) => {
-    await page.goto('/login');
-    await page.getByLabel('Name').fill('Shreya');
-    await page.getByLabel('Password').fill('Shreya#23');
-    await page.getByRole('button', { name: 'Sign in' }).click();
-    await expect(page).toHaveURL('/');
-  });
-
-  // ──────────────────────────────────────────────────────────────────────────
-  // SECTION 3: Login validation error
-  // ──────────────────────────────────────────────────────────────────────────
-
-  /**
-   * TC03: LoginPage - invalid login shows error message without navigation
-   */
-  test('TC03 - LoginPage - invalid login shows error message without navigation', async ({ page }) => {
+  test('TC02 - LoginPage - invalid login shows error message without navigation', async ({ page }) => {
     await page.goto('/login');
     await page.getByLabel('Name').fill('Wrong');
     await page.getByLabel('Password').fill('invalid');
     await page.getByRole('button', { name: 'Sign in' }).click();
     await expect(page.getByText('Invalid username or password.')).toBeVisible();
     await expect(page).toHaveURL('/login');
+  });
+
+  // ──────────────────────────────────────────────────────────────────────────
+  // SECTION 3: Login
+  // ──────────────────────────────────────────────────────────────────────────
+
+  /**
+   * TC03: Login Page - successful login navigates to home
+   */
+  test('TC03 - Login Page - successful login navigates to home', async ({ page }) => {
+    await page.goto('/login');
+    await page.getByLabel('Name').fill('Shreya');
+    await page.getByLabel('Password').fill('Shreya#23');
+    await page.getByRole('button', { name: 'Sign in' }).click();
+    await page.waitForURL('/');
+    const cookies = await page.context().cookies();
+    const authCookie = cookies.find(cookie => cookie.name === 'habit_auth');
+    expect(authCookie).toBeTruthy();
+    expect(authCookie?.value).toBe('1');
   });
 
 });
