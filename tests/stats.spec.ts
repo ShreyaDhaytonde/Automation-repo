@@ -4,13 +4,48 @@ test.describe('Stats', () => {
   test.setTimeout(60000);
 
   // ──────────────────────────────────────────────────────────────────────────
-  // SECTION 1: Stats
+  // SECTION 1: Stats page load
   // ──────────────────────────────────────────────────────────────────────────
 
   /**
-   * TC01: Stats - displays heading and description
+   * TC01: Stats - page load shows heading, back link and controls
    */
-  test('TC01 - Stats - displays heading and description', async ({ page }) => {
+  test('TC01 - Stats - page load shows heading, back link and controls', async ({ page }) => {
+    await page.goto("/stats");
+    await expect(page.getByRole("heading", { name: "Your stats" })).toBeVisible();
+    await expect(page.getByRole("link", { name: "← Back to habits" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Logout" })).toBeVisible();
+  });
+
+  // ──────────────────────────────────────────────────────────────────────────
+  // SECTION 2: Stats
+  // ──────────────────────────────────────────────────────────────────────────
+
+  /**
+   * TC02: Stats - page loads with heading and navigation link
+   */
+  test('TC02 - Stats - page loads with heading and navigation link', async ({ page }) => {
+    await page.goto('/stats');
+    await expect(page.getByRole('heading', { name: 'Your stats' })).toBeVisible();
+    await expect(page.getByRole('link', { name: '← Back to habits' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Logout' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Switch to dark mode' })).toBeVisible();
+  });
+
+  /**
+   * TC03: Stats - navigates back to home page from back link
+   */
+  test('TC03 - Stats - navigates back to home page from back link', async ({ page }) => {
+    await page.goto('/stats');
+    await page.getByRole('link', { name: '← Back to habits' }).click();
+    await expect(page).toHaveURL('/');
+    await expect(page.getByRole('heading', { name: 'Habit Tracker' })).toBeVisible();
+  });
+
+  /**
+   * TC04: Stats - displays heading and description
+   */
+  test('TC04 - Stats - displays heading and description', async ({ page }) => {
     await page.goto("/stats");
     const heading = page.getByRole("heading", { name: "Your stats" });
     await expect(heading).toBeVisible();
@@ -19,9 +54,9 @@ test.describe('Stats', () => {
   });
 
   /**
-   * TC02: Stats - has navigation link back to home page
+   * TC05: Stats - has navigation link back to home page
    */
-  test('TC02 - Stats - has navigation link back to home page', async ({ page }) => {
+  test('TC05 - Stats - has navigation link back to home page', async ({ page }) => {
     await page.goto("/stats");
     const backLink = page.getByRole("link", { name: "Back to habits" });
     await expect(backLink).toBeVisible();
@@ -30,9 +65,9 @@ test.describe('Stats', () => {
   });
 
   /**
-   * TC03: Stats page - initial render shows heading, description, back link, theme toggle, and logout button
+   * TC06: Stats page - initial render shows heading, description, back link, theme toggle, and logout button
    */
-  test('TC03 - Stats page - initial render shows heading, description, back link, theme toggle, and logout button', async ({ page }) => {
+  test('TC06 - Stats page - initial render shows heading, description, back link, theme toggle, and logout button', async ({ page }) => {
     await page.goto('/stats');
     await expect(page.getByRole('heading', { name: 'Your stats' })).toBeVisible();
     await expect(page.getByText('How your habits are tracking overall.')).toBeVisible();
@@ -40,14 +75,10 @@ test.describe('Stats', () => {
     await expect(page.getByRole('button', { name: 'Logout' })).toBeVisible();
   });
 
-  // ──────────────────────────────────────────────────────────────────────────
-  // SECTION 2: Stats page load
-  // ──────────────────────────────────────────────────────────────────────────
-
   /**
-   * TC04: Stats page - loads and displays heading and back link
+   * TC07: Stats page - loads and displays heading and back link
    */
-  test('TC04 - Stats page - loads and displays heading and back link', async ({ page }) => {
+  test('TC07 - Stats page - loads and displays heading and back link', async ({ page }) => {
     await page.goto('/stats');
     await expect(page.getByRole('heading', { name: 'Your stats' })).toBeVisible();
     await expect(page.getByRole('link', { name: '← Back to habits' })).toBeVisible();
