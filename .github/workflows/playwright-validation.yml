@@ -483,6 +483,8 @@ jobs:
     if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    permissions:
+      contents: write # needed to push this run's Allure report to gh-pages
 
     steps:
       - name: Checkout validation script (this repo, exact commit)
@@ -513,6 +515,19 @@ jobs:
             echo "No allure-results directory - skipping report generation."
           fi
 
+      # Published under its own <branch>/<run_id> path so a link to THIS run's
+      # report keeps pointing at THIS run's report forever -- a later run
+      # never overwrites it, unlike publishing every run to the same path.
+      - name: Publish Allure report to Pages
+        if: always() && hashFiles('results/allure-report/index.html') != ''
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: results/allure-report
+          publish_branch: gh-pages
+          destination_dir: ${{ inputs.branch }}/${{ github.run_id }}
+          keep_files: true
+
       - name: Setup Python
         if: always()
         uses: actions/setup-python@v5
@@ -522,8 +537,6 @@ jobs:
       - name: Analyse results and route
         if: always()
         env:
-          VALIDATION_NOTIFY_URL: ${{ secrets.VALIDATION_NOTIFY_URL }}
-          VALIDATION_NOTIFY_TOKEN: ${{ secrets.VALIDATION_NOTIFY_TOKEN }}
           VALIDATION_BRANCH: ${{ inputs.branch }}
           VALIDATION_COMMIT_SHA: ${{ inputs.commit_sha }}
           VALIDATION_SOURCE_REPO: ${{ inputs.source_repo }}
@@ -532,8 +545,7 @@ jobs:
         run: |
           python automation/scripts/validation_report.py \
             --results results/results.json \
-            --out results/validation-report.json \
-            --threshold 80
+            --out results/validation-report.json
 
       - name: Add report to run summary
         if: always()
@@ -543,24 +555,20 @@ jobs:
           python - <<'PY' >> "$GITHUB_STEP_SUMMARY"
           import json
           r = json.load(open("results/validation-report.json"))
+          # No root-cause category exists yet at this stage -- that only comes
+          # from the agent's own LLM classification pass once it fetches this
+          # report, so this summary sticks to raw pass/fail counts.
           print(f"### Validation: {r['verdict'].upper()}  (confidence {r['confidence']})")
           print()
           print(f"- {r['passed']}/{r['total']} passed, {r['failed']} failed, "
                 f"{r['flaky']} flaky, {r['skipped']} skipped")
           print(f"- confidence: {r['confidence']} - {r['confidence_reason']}")
-          print(f"- notified: {r['notified']}")
-          if r["counts_by_category"]:
-              print()
-              print("| cause | count |")
-              print("|---|---|")
-              for cause, count in sorted(r["counts_by_category"].items()):
-                  print(f"| {cause.replace('_',' ')} | {count} |")
           if r["failures"]:
               print()
-              print("| test | cause | why |")
-              print("|---|---|---|")
+              print("| test | error |")
+              print("|---|---|")
               for f in r["failures"][:20]:
-                  print(f"| {f['title']} | {f['category'].replace('_',' ')} | {f['reason']} |")
+                  print(f"| {f['title']} | {f['error'][:200]} |")
           print()
           print(r["summary"])
           PY
