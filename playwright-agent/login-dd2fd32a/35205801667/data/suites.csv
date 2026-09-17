@@ -1,0 +1,2 @@
+"DESCRIPTION","DURATION IN MS","NAME","PARENT SUITE","START TIME","STATUS","STOP TIME","SUB SUITE","SUITE","TEST CLASS","TEST METHOD"
+"","11274","TC10 - HabitCard - marks habit done today disables button","chromium","2026-09-17","failed","2026-09-17","Home","home.spec.ts","",""
