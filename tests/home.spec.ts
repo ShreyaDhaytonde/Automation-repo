@@ -97,9 +97,9 @@ test.describe('Home', () => {
     const editNameInput = page.getByLabel(`Edit name for ${originalName}`);
     await expect(editNameInput).toHaveValue(originalName);
     await editNameInput.fill(`${originalName} updated`);
-    await page.getByLabel(`Edit category for ${originalName}`)).selectOption("Health");
-    await page.getByLabel(`Edit times per week for ${originalName}`)).selectOption("3");
-    await page.getByLabel(`Edit notes for ${originalName}`)).fill("Updated notes.");
+    await page.getByLabel(`Edit category for ${originalName}`).selectOption("Health");
+    await page.getByLabel(`Edit times per week for ${originalName}`).selectOption("3");
+    await page.getByLabel(`Edit notes for ${originalName}`).fill("Updated notes.");
     await page.getByRole("button", { name: "Save" }).click();
     const updatedCard = page.getByRole("listitem").filter({ hasText: `${originalName} updated` });
     await expect(updatedCard).toBeVisible();
