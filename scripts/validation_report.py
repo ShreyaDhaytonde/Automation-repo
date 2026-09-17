@@ -1,21 +1,3 @@
-"""Steps 17-21: classify failures, summarize, score confidence, route.
-
-Self-contained on purpose. This runs inside the automation repository's CI,
-which cannot install the generator's package, so it depends on nothing beyond
-the standard library. Classification and the summary are both deterministic --
-no LLM call is made here.
-
-Reads:
-  results/results.json   Playwright JSON reporter output
-Writes:
-  results/validation-report.json   the full report, always
-Optionally POSTs the report to VALIDATION_NOTIFY_URL when confidence clears
-the threshold.
-
-Run:
-  python scripts/validation_report.py --results results/results.json
-"""
-
 from __future__ import annotations
 
 import argparse
@@ -23,93 +5,16 @@ import json
 import os
 import re
 import sys
-import urllib.error
-import urllib.request
 from dataclasses import asdict, dataclass, field
 from typing import Any
-
-INFRA_SIGNALS = (
-    "ECONNREFUSED",
-    "ERR_CONNECTION_REFUSED",
-    "ERR_CONNECTION_RESET",
-    "ERR_NAME_NOT_RESOLVED",
-    "ERR_EMPTY_RESPONSE",
-    "ERR_ADDRESS_UNREACHABLE",
-    "net::ERR_",
-    "502 Bad Gateway",
-    "503 Service Unavailable",
-    "504 Gateway Timeout",
-    "Target page, context or browser has been closed",
-    "browserType.launch",
-    "Executable doesn't exist",
-)
-
-# A 10+ digit run in the failing locator is almost always a Date.now()-style
-# fixture value the FAILING TEST created for itself (e.g. `Habit ${Date.now()}`).
-# When a locator built from that value doesn't resolve the way the test expected
-# -- not found, or matching more than one element -- the selector itself was
-# correctly scoped to data only this test could have produced. That rules out
-# "the test wrote a bad selector" as the cause: what's left is the application
-# either never producing/rendering what was asked for, or producing it more
-# than once. Signals gated on this are ambiguous between those two causes
-# without deeper reasoning, so they resolve to developer_bug, not test_bug.
-OWN_FIXTURE_PATTERN = re.compile(r"\d{10,}")
-
-# Ambiguous by themselves: "more than one element matched" or "never appeared"
-# reads as a test-authoring mistake ONLY when the locator was not already
-# scoped to this test's own unique fixture (see OWN_FIXTURE_PATTERN above).
-AMBIGUOUS_TEST_SIGNALS = (
-    "strict mode violation",
-    "resolved to 2 elements",
-    "resolved to 3 elements",
-    "resolved to more than one element",
-)
-
-# Unambiguous regardless of fixture scoping: these are defects in the test
-# file's own code, not in what the application did.
-TEST_SIGNALS = (
-    "did not find some options",
-    "Option not found",
-    "is not a function",
-    "Cannot find module",
-    "SyntaxError",
-    "ReferenceError",
-    "TypeError",
-)
-
-DEVELOPER_SIGNALS = (
-    "Received string",
-    "Received: ",
-    "expect(received)",
-    "toHaveText",
-    "toHaveValue",
-    "toHaveURL",
-    "toHaveCount",
-    "toBeDisabled",
-    "toBeEnabled",
-    "toBeChecked",
-)
-
-OBSERVED_VALUE_MARKERS = (
-    "Received",
-    "Actual:",
-    "Received string",
-    "Received array",
-    "Received number",
-)
-
-DEVELOPER_BUG = "developer_bug"
-TEST_BUG = "test_bug"
-INFRA_BUG = "infra_bug"
-
 
 @dataclass
 class Failure:
     spec: str
     title: str
-    category: str
-    reason: str
     error: str
+    category: str = ""
+    reason: str = ""
 
 
 @dataclass
@@ -125,73 +30,9 @@ class Report:
     failures: list[Failure] = field(default_factory=list)
     counts_by_category: dict[str, int] = field(default_factory=dict)
     summary: str = ""
-    notified: bool = False
-
-
-def classify(error: str) -> tuple[str, str]:
-    """Return (category, human reason) for one failure's error text.
-
-    Order matters and is deliberate. Infrastructure is checked first because
-    when the app or backend is unreachable EVERY other signal is noise -- a
-    locator "not found" on a page that never loaded says nothing about the
-    locator. Test-authoring faults come next since they are textually
-    distinctive.
-
-    An assertion mismatch is only credible once the element was actually
-    found and read. Playwright prints the matcher name in its timeout text
-    too ("Timed out 5000ms waiting for expect(locator).toBeDisabled()"), so
-    matching on the matcher name alone reports a locator that never resolved
-    as an application bug -- and sends a developer looking for a defect that
-    the run never observed. A real mismatch carries the value that was read
-    back, so that is what decides it.
-    """
-    haystack = error or ""
-
-    for signal in INFRA_SIGNALS:
-        if signal in haystack:
-            return INFRA_BUG, f"environment problem: matched {signal!r}"
-
-    scoped_to_own_fixture = bool(OWN_FIXTURE_PATTERN.search(haystack))
-
-    for signal in AMBIGUOUS_TEST_SIGNALS:
-        if signal in haystack:
-            if scoped_to_own_fixture:
-                return DEVELOPER_BUG, (
-                    f"application behaved differently: matched {signal!r} on a locator "
-                    "scoped to this test's own unique fixture value, so the selector "
-                    "was not the problem"
-                )
-            return TEST_BUG, f"test authoring problem: matched {signal!r}"
-
-    for signal in TEST_SIGNALS:
-        if signal in haystack:
-            return TEST_BUG, f"test authoring problem: matched {signal!r}"
-
-    observed_a_value = any(marker in haystack for marker in OBSERVED_VALUE_MARKERS)
-    if observed_a_value:
-        for signal in DEVELOPER_SIGNALS:
-            if signal in haystack:
-                return DEVELOPER_BUG, f"application behaved differently: matched {signal!r}"
-
-    lowered = haystack.lower()
-    if "timeout" in lowered or "timed out" in lowered:
-        if scoped_to_own_fixture:
-            return DEVELOPER_BUG, (
-                "timed out waiting for a locator scoped to this test's own unique "
-                "fixture value, so the selector was not the problem - the "
-                "application never produced or rendered it"
-            )
-        return TEST_BUG, "timed out waiting for a locator - selector or missing feature"
-
-    for signal in DEVELOPER_SIGNALS:
-        if signal in haystack:
-            return DEVELOPER_BUG, f"application behaved differently: matched {signal!r}"
-
-    return TEST_BUG, "unrecognized failure - triage manually"
 
 
 def _walk_specs(suites: list[dict], path: str = "") -> Any:
-    """Yield (spec_file, spec) pairs from Playwright's nested suite tree."""
     for suite in suites or []:
         current = path or suite.get("file") or suite.get("title", "")
         for spec in suite.get("specs", []) or []:
@@ -242,68 +83,36 @@ def build_report(results: dict) -> Report:
 
             report.failed += 1
             error = _error_text(test)
-            category, reason = classify(error)
             report.failures.append(
                 Failure(
                     spec=spec_file,
                     title=spec.get("title", "<untitled>"),
-                    category=category,
-                    reason=reason,
                     error=error.strip()[:600],
                 )
             )
 
     counted = report.passed + report.failed + report.flaky
     report.pass_rate = round(report.passed / counted, 4) if counted else 0.0
-    for failure in report.failures:
-        report.counts_by_category[failure.category] = (
-            report.counts_by_category.get(failure.category, 0) + 1
-        )
     return report
 
 
-def score_confidence(report: Report) -> tuple[int, str]:
-    """How much this run's verdict can be trusted, and why.
-
-    This scores the RUN, not the application. The distinction matters: a
-    developer bug is a successful validation -- the suite did its job and
-    found something -- so it must not reduce confidence. What destroys
-    confidence is not knowing whether anything was really tested.
-
-    - infra failures: the app or backend was unreachable, so the suite
-      proved nothing. Heaviest penalty, and any infra failure caps the
-      score below the notify threshold outright.
-    - test bugs: the suite is faulty, so its passes are also suspect.
-    - flaky: passed only on retry, so its verdict is unstable.
-    - developer bugs: real findings. No penalty.
-    """
-    infra = report.counts_by_category.get(INFRA_BUG, 0)
-    test_bugs = report.counts_by_category.get(TEST_BUG, 0)
-    developer = report.counts_by_category.get(DEVELOPER_BUG, 0)
-
+def _baseline_confidence(report: Report) -> tuple[int, str]:
+    """No root-cause category exists yet at this stage -- this is a coarse,
+    pre-classification number so a report always carries SOME confidence
+    value (the run summary and the agent's own rendering both display one).
+    It only ever weighs pass/fail/flaky counts, never a category, because no
+    category is known here. Once the agent classifies real failures, its own
+    _score_confidence (src/agent/agent.py) recomputes this properly from the
+    real categories and overwrites this placeholder."""
     if report.total == 0:
         return 0, "no tests ran"
-
-    score = 100
-    notes: list[str] = []
-
-    if infra:
-        score -= 40 + 5 * infra
-        notes.append(f"{infra} infrastructure failure(s) - the app under test was unreachable")
-    if test_bugs:
-        score -= 12 * test_bugs
-        notes.append(f"{test_bugs} test-authoring failure(s) - suite correctness is in doubt")
-    if report.flaky:
-        score -= 8 * report.flaky
-        notes.append(f"{report.flaky} flaky test(s) - verdict unstable across retries")
-    if developer:
-        notes.append(f"{developer} application failure(s) - real findings, confidence unaffected")
-
-    score = max(0, min(100, score))
-    if infra:
-        score = min(score, 55)
-
-    return score, "; ".join(notes) or "clean run"
+    if report.failed == 0 and report.flaky == 0:
+        return 100, "clean run"
+    score = max(0, 100 - 12 * report.failed - 8 * report.flaky)
+    return score, (
+        f"{report.failed} failing, {report.flaky} flaky test(s) -- root cause not yet "
+        "classified, pending the agent's own classification pass"
+    )
 
 
 def _deterministic_summary(report: Report) -> str:
@@ -311,52 +120,12 @@ def _deterministic_summary(report: Report) -> str:
         f"{report.passed}/{report.total} passed "
         f"({report.failed} failed, {report.flaky} flaky, {report.skipped} skipped).",
     ]
-    for category, count in sorted(report.counts_by_category.items()):
-        lines.append(f"{count} x {category.replace('_', ' ')}")
     for failure in report.failures[:5]:
-        lines.append(f"- [{failure.category}] {failure.title}: {failure.reason}")
+        lines.append(f"- {failure.title}: {failure.error[:120]}")
     return " ".join(lines)
 
 
-def notify(report: Report, context: dict[str, str]) -> bool:
-    """POST the report to the configured tool. Returns whether it was sent.
-
-    Deliberately a plain HTTP POST to one URL rather than an integration with
-    any particular product: whatever receives it -- an existing internal
-    tool, a Teams incoming webhook, a queue -- only needs to accept JSON.
-    """
-    url = os.environ.get("VALIDATION_NOTIFY_URL")
-    if not url:
-        return False
-
-    body = json.dumps({**context, **asdict(report)}).encode()
-    request = urllib.request.Request(
-        url,
-        data=body,
-        headers={"Content-Type": "application/json"},
-        method="POST",
-    )
-    token = os.environ.get("VALIDATION_NOTIFY_TOKEN")
-    if token:
-        request.add_header("Authorization", f"Bearer {token}")
-
-    try:
-        with urllib.request.urlopen(request, timeout=30) as response:
-            return 200 <= response.status < 300
-    except (urllib.error.URLError, OSError) as exc:
-        print(f"::warning title=Notification failed::{exc}", file=sys.stderr)
-        return False
-
-
 def _missing_results_report(exc: Exception) -> tuple[Report, str]:
-    """Build the report for a run where Playwright never produced results.json.
-
-    This is not a test-authoring failure -- there is no suite to blame, since
-    no test ever ran. The overwhelmingly common cause is an earlier
-    infrastructure step (backend/frontend health check) failing and skipping
-    every step after it, so this is reported as a server/environment problem,
-    never as test_bug.
-    """
     reason = (
         f"no test results ({type(exc).__name__}: {exc}) -- Playwright likely never ran "
         "because an earlier infrastructure step failed (backend health check, frontend "
@@ -368,12 +137,17 @@ def _missing_results_report(exc: Exception) -> tuple[Report, str]:
         Failure(
             spec="<pipeline>",
             title="Playwright never ran",
-            category=INFRA_BUG,
-            reason=reason,
             error=str(exc),
+            # Unlike every other failure, this one is not a guess: no
+            # results.json existing at all can only mean an earlier
+            # infrastructure step failed before Playwright ever started, so
+            # it is safe to say infra_bug here without waiting on the
+            # agent's classification pass.
+            category="infra_bug",
+            reason=reason,
         )
     )
-    report.counts_by_category[INFRA_BUG] = 1
+    report.counts_by_category["infra_bug"] = 1
     report.summary = (
         "No Playwright test results were produced this run. This is a server/environment "
         "problem, not a test-authoring issue: an earlier step (most likely the backend or "
@@ -388,7 +162,6 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--results", default="results/results.json")
     parser.add_argument("--out", default="results/validation-report.json")
-    parser.add_argument("--threshold", type=int, default=80)
     args = parser.parse_args()
 
     try:
@@ -409,11 +182,10 @@ def main() -> int:
         with open(args.out, "w") as handle:
             json.dump({**context, **asdict(report)}, handle, indent=2)
         print(f"verdict={report.verdict} confidence={report.confidence} ({reason})")
-        print(f"categories={report.counts_by_category}")
         return 1
 
     report = build_report(results)
-    report.confidence, reason = score_confidence(report)
+    report.confidence, reason = _baseline_confidence(report)
     report.verdict = "pass" if report.failed == 0 and report.flaky == 0 else "fail"
     report.summary = _deterministic_summary(report)
 
@@ -426,16 +198,11 @@ def main() -> int:
         "confidence_reason": reason,
     }
 
-    if report.confidence >= args.threshold:
-        report.notified = notify(report, context)
-
     os.makedirs(os.path.dirname(args.out) or ".", exist_ok=True)
     with open(args.out, "w") as handle:
         json.dump({**context, **asdict(report)}, handle, indent=2)
 
     print(f"verdict={report.verdict} confidence={report.confidence} ({reason})")
-    print(f"categories={report.counts_by_category}")
-    print(f"notified={report.notified}")
     return 0
 
 
