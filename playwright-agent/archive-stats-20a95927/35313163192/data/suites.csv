@@ -1,0 +1,4 @@
+"DESCRIPTION","DURATION IN MS","NAME","PARENT SUITE","START TIME","STATUS","STOP TIME","SUB SUITE","SUITE","TEST CLASS","TEST METHOD"
+"","60408","TC04 - Archive page - delete an archived habit","chromium","2026-09-18","broken","2026-09-18","Archive","archive.spec.ts","",""
+"","60424","TC07 - History page - habit strips render and show status dots","chromium","2026-09-18","broken","2026-09-18","Archive","archive.spec.ts","",""
+"","60395","TC02 - Archive page - create and unarchive a habit","chromium","2026-09-18","broken","2026-09-18","Archive","archive.spec.ts","",""
