@@ -57,12 +57,12 @@ test.describe('Archive page', () => {
     await page.getByRole('button', { name: 'Add habit' }).click();
     const habitCard = page.getByRole('listitem').filter({ hasText: uniqueName });
     await expect(habitCard).toBeVisible();
-    await habitCard.getByRole('button', { name: `Archive` }).click();
+    await habitCard.getByRole('button', { name: `Archive ${uniqueName}`, exact: true }).click();
     await page.goto('/archive');
     const archivedHabitCard = page.getByRole('listitem').filter({ hasText: uniqueName });
     await expect(archivedHabitCard).toBeVisible();
     await archivedHabitCard.getByRole('button', { name: `Unarchive ${uniqueName}`, exact: true }).click();
-    await expect(archivedHabitCard).toHaveCount(0);
+    await expect(page.getByRole('listitem').filter({ hasText: uniqueName })).toHaveCount(0);
   });
 
   /**
