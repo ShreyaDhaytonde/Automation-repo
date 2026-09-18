@@ -30,6 +30,18 @@ class Report:
     failures: list[Failure] = field(default_factory=list)
     counts_by_category: dict[str, int] = field(default_factory=dict)
     summary: str = ""
+    # This generator never writes test.skip() (confirmed: no such call in the
+    # generation/validation pipeline), so every "skipped" status Playwright reports is
+    # a test that was never reached -- most commonly the remainder after --max-failures
+    # cut a run short -- not a deliberate skip. Named for what it actually means to the
+    # agent's shard-until-complete loop, not for Playwright's raw status string.
+    not_executed_titles: list = field(default_factory=list)
+    # Flaky means it failed at least once, then passed on Playwright's own retry --
+    # a real reliability problem (usually a race: asserting before an async UI update
+    # settles), but invisible to the repair loop today since it never reaches
+    # `failures` (the test technically ended up passing). Recorded with the failed
+    # attempt's own error text so a repair pass has real evidence to act on.
+    flaky_titles: list = field(default_factory=list)
 
 
 def _walk_specs(suites: list[dict], path: str = "") -> Any:
@@ -73,12 +85,22 @@ def build_report(results: dict) -> Report:
             report.total += 1
             if status == "flaky":
                 report.flaky += 1
+                report.flaky_titles.append(
+                    {
+                        "spec": spec_file,
+                        "title": spec.get("title", "<untitled>"),
+                        "error": _error_text(test).strip()[:600],
+                    }
+                )
                 continue
             if status in ("expected", "passed"):
                 report.passed += 1
                 continue
             if status == "skipped":
                 report.skipped += 1
+                report.not_executed_titles.append(
+                    {"spec": spec_file, "title": spec.get("title", "<untitled>")}
+                )
                 continue
 
             report.failed += 1
