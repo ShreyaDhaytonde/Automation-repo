@@ -13,10 +13,10 @@ test.describe('Archive', () => {
   test('TC01 - Archive page - loads and renders base elements', async ({ page }) => {
     await page.goto("/archive");
     await expect(page.getByRole("heading", { name: "Archive" })).toBeVisible();
-    await expect(page.getByRole("button", { name: "← Back to habits" })).toBeVisible();
+    await expect(page.getByRole("link", { name: "← Back to habits" })).toBeVisible();
     await expect(page.getByLabel("Switch to dark mode")).toBeVisible();
     await expect(page.getByRole("button", { name: "Logout" })).toBeVisible();
-    await expect(page.getByText("Habits you\'ve archived, out of the main list.")).toBeVisible();
+    await expect(page.getByText("Habits you've archived, out of the main list.")).toBeVisible();
   });
 
   // ──────────────────────────────────────────────────────────────────────────
@@ -32,7 +32,7 @@ test.describe('Archive', () => {
     await expect(page.getByText("Habits you've archived, out of the main list.")).toBeVisible();
     await expect(page.getByRole('link', { name: '← Back to habits' })).toBeVisible();
     await expect(page.getByText('No archived habits — anything you archive from the home page shows up here.')).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Theme toggle' })).toBeVisible();
+    await expect(page.getByLabel('Switch to dark mode')).toBeVisible();
     await expect(page.getByRole('button', { name: 'Log out' })).toBeVisible();
   });
 
@@ -118,7 +118,7 @@ test.describe('Archive', () => {
     await expect(page.getByText('Done')).toBeVisible();
     await expect(page.getByText('Frozen')).toBeVisible();
     await expect(page.getByText('Missed')).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Theme toggle' })).toBeVisible();
+    await expect(page.getByLabel('Switch to dark mode')).toBeVisible();
     await expect(page.getByRole('button', { name: 'Log out' })).toBeVisible();
   });
 
@@ -132,7 +132,7 @@ test.describe('Archive', () => {
     await expect(page.getByRole('link', { name: 'History' })).toBeVisible();
     await expect(page.getByRole('link', { name: 'View stats' })).toBeVisible();
     await expect(page.getByRole('link', { name: 'Archive' })).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Theme toggle' })).toBeVisible();
+    await expect(page.getByLabel('Switch to dark mode')).toBeVisible();
     await expect(page.getByRole('button', { name: 'Log out' })).toBeVisible();
     await expect(page.getByRole('textbox', { name: 'Name' })).toBeVisible();
     await expect(page.getByLabel('Category')).toBeVisible();
