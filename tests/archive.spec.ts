@@ -4,13 +4,29 @@ test.describe('Archive', () => {
   test.setTimeout(60000);
 
   // ──────────────────────────────────────────────────────────────────────────
-  // SECTION 1: Archive page rendering
+  // SECTION 1: Archive page load
   // ──────────────────────────────────────────────────────────────────────────
 
   /**
-   * TC01: Archive page - renders with heading and controls
+   * TC01: Archive page - loads and renders base elements
    */
-  test('TC01 - Archive page - renders with heading and controls', async ({ page }) => {
+  test('TC01 - Archive page - loads and renders base elements', async ({ page }) => {
+    await page.goto("/archive");
+    await expect(page.getByRole("heading", { name: "Archive" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "← Back to habits" })).toBeVisible();
+    await expect(page.getByLabel("Switch to dark mode")).toBeVisible();
+    await expect(page.getByRole("button", { name: "Logout" })).toBeVisible();
+    await expect(page.getByText("Habits you\'ve archived, out of the main list.")).toBeVisible();
+  });
+
+  // ──────────────────────────────────────────────────────────────────────────
+  // SECTION 2: Archive
+  // ──────────────────────────────────────────────────────────────────────────
+
+  /**
+   * TC02: Archive page - renders with heading and controls
+   */
+  test('TC02 - Archive page - renders with heading and controls', async ({ page }) => {
     await page.goto('/archive');
     await expect(page.getByRole('heading', { name: 'Archive' })).toBeVisible();
     await expect(page.getByText("Habits you've archived, out of the main list.")).toBeVisible();
@@ -20,14 +36,10 @@ test.describe('Archive', () => {
     await expect(page.getByRole('button', { name: 'Log out' })).toBeVisible();
   });
 
-  // ──────────────────────────────────────────────────────────────────────────
-  // SECTION 2: Archive habit management
-  // ──────────────────────────────────────────────────────────────────────────
-
   /**
-   * TC02: Archive page - create and unarchive a habit
+   * TC03: Archive page - create and unarchive a habit
    */
-  test('TC02 - Archive page - create and unarchive a habit', async ({ page }) => {
+  test('TC03 - Archive page - create and unarchive a habit', async ({ page }) => {
     const newHabitName = `Unarchive Test ${Date.now()}`;
     await page.goto('/');
     await page.getByRole('textbox', { name: 'New habit name' }).fill(newHabitName);
@@ -47,9 +59,9 @@ test.describe('Archive', () => {
   });
 
   /**
-   * TC03: Archive page - edit an archived habit's name
+   * TC04: Archive page - edit an archived habit\'s name
    */
-  test('TC03 - Archive page - edit an archived habit\'s name', async ({ page }) => {
+  test('TC04 - Archive page - edit an archived habit\\\'s name', async ({ page }) => {
     const habitName = `Edit Archived ${Date.now()}`;
     await page.goto('/');
     await page.getByLabel('Name').fill(habitName);
@@ -74,9 +86,9 @@ test.describe('Archive', () => {
   });
 
   /**
-   * TC04: Archive page - delete an archived habit
+   * TC05: Archive page - delete an archived habit
    */
-  test('TC04 - Archive page - delete an archived habit', async ({ page }) => {
+  test('TC05 - Archive page - delete an archived habit', async ({ page }) => {
     const habitName = `Delete Archived ${Date.now()}`;
     await page.goto('/');
     await page.getByRole('textbox', { name: 'New habit name' }).fill(habitName);
@@ -95,14 +107,10 @@ test.describe('Archive', () => {
     await expect(page.getByRole('listitem').filter({ hasText: habitName })).toHaveCount(0);
   });
 
-  // ──────────────────────────────────────────────────────────────────────────
-  // SECTION 3: History page rendering
-  // ──────────────────────────────────────────────────────────────────────────
-
   /**
-   * TC05: History page - renders with heading and controls
+   * TC06: History page - renders with heading and controls
    */
-  test('TC05 - History page - renders with heading and controls', async ({ page }) => {
+  test('TC06 - History page - renders with heading and controls', async ({ page }) => {
     await page.goto('/history');
     await expect(page.getByRole('heading', { name: 'History' })).toBeVisible();
     await expect(page.getByText('Last 28 days for each habit.')).toBeVisible();
@@ -114,14 +122,10 @@ test.describe('Archive', () => {
     await expect(page.getByRole('button', { name: 'Log out' })).toBeVisible();
   });
 
-  // ──────────────────────────────────────────────────────────────────────────
-  // SECTION 4: Home page rendering
-  // ──────────────────────────────────────────────────────────────────────────
-
   /**
-   * TC06: Home page - renders with heading and controls
+   * TC07: Home page - renders with heading and controls
    */
-  test('TC06 - Home page - renders with heading and controls', async ({ page }) => {
+  test('TC07 - Home page - renders with heading and controls', async ({ page }) => {
     await page.goto('/');
     await expect(page.getByRole('heading', { name: 'Habit Tracker' })).toBeVisible();
     await expect(page.getByText('Build small daily habits, one day at a time.')).toBeVisible();
@@ -137,14 +141,10 @@ test.describe('Archive', () => {
     await expect(page.getByRole('button', { name: 'Add habit' })).toBeVisible();
   });
 
-  // ──────────────────────────────────────────────────────────────────────────
-  // SECTION 5: History habit strips
-  // ──────────────────────────────────────────────────────────────────────────
-
   /**
-   * TC07: History page - habit strips render and show status dots
+   * TC08: History page - habit strips render and show status dots
    */
-  test('TC07 - History page - habit strips render and show status dots', async ({ page }) => {
+  test('TC08 - History page - habit strips render and show status dots', async ({ page }) => {
     const habitName = `History Test ${Date.now()}`;
     await page.goto('/');
     await page.getByRole('textbox', { name: 'New habit name' }).fill(habitName);
