@@ -1,0 +1,4 @@
+"DESCRIPTION","DURATION IN MS","NAME","PARENT SUITE","START TIME","STATUS","STOP TIME","SUB SUITE","SUITE","TEST CLASS","TEST METHOD"
+"","1711","TC28 - Home page - toggling show archived controls archived habits visibility","chromium","2026-09-18","passed","2026-09-18","Home","home.spec.ts","",""
+"","11774","TC03 - Archive page - can unarchive an archived habit","chromium","2026-09-18","failed","2026-09-18","Archive page","archive.spec.ts","",""
+"","1111","TC39 - Home - toggles show archived checkbox updates habits list","chromium","2026-09-18","passed","2026-09-18","Home","home.spec.ts","",""
