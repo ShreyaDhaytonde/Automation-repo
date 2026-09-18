@@ -4,19 +4,19 @@ test.describe('Stats', () => {
   test.setTimeout(60000);
 
   // ──────────────────────────────────────────────────────────────────────────
-  // SECTION 1: Stats page rendering
+  // SECTION 1: Stats page load
   // ──────────────────────────────────────────────────────────────────────────
 
   /**
-   * TC01: Stats page - renders with heading and controls
+   * TC01: Stats page - loads and renders base elements
    */
-  test('TC01 - Stats page - renders with heading and controls', async ({ page }) => {
-    await page.goto('/stats');
-    await expect(page.getByRole('heading', { name: 'Your stats' })).toBeVisible();
-    await expect(page.getByText('How your habits are tracking overall.')).toBeVisible();
-    await expect(page.getByRole('link', { name: 'History' })).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Theme toggle' })).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Log out' })).toBeVisible();
+  test('TC01 - Stats page - loads and renders base elements', async ({ page }) => {
+    await page.goto("/stats");
+    await expect(page.getByRole("heading", { name: "Your stats" })).toBeVisible();
+    await expect(page.getByRole("link", { name: "History" })).toBeVisible();
+    await expect(page.getByLabel("Switch to dark mode")).toBeVisible();
+    await expect(page.getByRole("button", { name: "Logout" })).toBeVisible();
+    await expect(page.getByRole("link", { name: "← Back to habits" })).toBeVisible();
   });
 
   // ──────────────────────────────────────────────────────────────────────────
@@ -84,6 +84,18 @@ test.describe('Stats', () => {
     await page.goto('/stats');
     await expect(page.getByRole('heading', { name: 'Your stats' })).toBeVisible();
     await expect(page.getByRole('link', { name: '← Back to habits' })).toBeVisible();
+  });
+
+  /**
+   * TC08: Stats page - renders with heading and controls
+   */
+  test('TC08 - Stats page - renders with heading and controls', async ({ page }) => {
+    await page.goto('/stats');
+    await expect(page.getByRole('heading', { name: 'Your stats' })).toBeVisible();
+    await expect(page.getByText('How your habits are tracking overall.')).toBeVisible();
+    await expect(page.getByRole('link', { name: 'History' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Theme toggle' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Log out' })).toBeVisible();
   });
 
 });
