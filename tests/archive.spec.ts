@@ -31,7 +31,7 @@ test.describe('Archive', () => {
     const newHabitName = `Unarchive Test ${Date.now()}`;
     await page.goto('/');
     await page.getByRole('textbox', { name: 'New habit name' }).fill(newHabitName);
-    await page.getByLabel('Category').selectOption({ index: 1 });
+    await page.locator('select[aria-label="Habit category"]').selectOption({ index: 1 });
     await page.getByLabel('Target per week').fill('1');
     await page.getByLabel('Notes').fill('Testing unarchive.');
     await page.getByRole('button', { name: 'Add habit' }).click();
@@ -80,7 +80,7 @@ test.describe('Archive', () => {
     const habitName = `Delete Archived ${Date.now()}`;
     await page.goto('/');
     await page.getByRole('textbox', { name: 'New habit name' }).fill(habitName);
-    await page.getByLabel('Category').selectOption({ index: 1 });
+    await page.locator('select[aria-label="Habit category"]').selectOption({ index: 1 });
     await page.getByLabel('Target per week').fill('2');
     await page.getByLabel('Notes').fill('Deleting archived habit test.');
     await page.getByRole('button', { name: 'Add habit' }).click();
@@ -148,7 +148,7 @@ test.describe('Archive', () => {
     const habitName = `History Test ${Date.now()}`;
     await page.goto('/');
     await page.getByRole('textbox', { name: 'New habit name' }).fill(habitName);
-    await page.getByLabel('Category').selectOption({ index: 1 });
+    await page.locator('select[aria-label="Habit category"]').selectOption({ index: 1 });
     await page.getByLabel('Target per week').fill('3');
     await page.getByLabel('Notes').fill('History strip rendering test.');
     await page.getByRole('button', { name: 'Add habit' }).click();
