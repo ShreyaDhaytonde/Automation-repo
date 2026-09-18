@@ -13,7 +13,7 @@ test.describe('History', () => {
   test('TC01 - History page - loads and renders base elements', async ({ page }) => {
     await page.goto("/history");
     await expect(page.getByRole("heading", { name: "History" })).toBeVisible();
-    await expect(page.getByRole("button", { name: "← Back to habits" })).toBeVisible();
+    await expect(page.getByRole("link", { name: "← Back to habits", exact: true })).toBeVisible();
     await expect(page.getByLabel("Switch to dark mode")).toBeVisible();
     await expect(page.getByRole("button", { name: "Logout" })).toBeVisible();
     await expect(page.getByText("Last 28 days for each habit.")).toBeVisible();
