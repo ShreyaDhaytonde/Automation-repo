@@ -516,28 +516,26 @@ jobs:
             echo "No allure-results directory - skipping report generation."
           fi
 
+      # Both the per-run report and the landing page are staged into ONE local
+      # tree and published with a SINGLE peaceiris push below. Two separate
+      # pushes (the old design) meant two separate triggers of GitHub's own
+      # internal "pages build and deployment" system in quick succession --
+      # that system serializes builds per repo (only one running + one queued;
+      # GitHub's Actions logs for one real run showed BOTH git pushes succeed
+      # while GitHub silently never started a build for either one, with no
+      # error anywhere in the job -- a rate/contention drop entirely outside
+      # this workflow's visibility or control). One push halves the trigger
+      # rate and removes the self-inflicted race between our own two steps.
+      #
       # Published under its own <branch>/<run_id> path so a link to THIS run's
       # report keeps pointing at THIS run's report forever -- a later run
       # never overwrites it, unlike publishing every run to the same path.
-      - name: Publish Allure report to Pages
-        if: always() && hashFiles('results/allure-report/index.html') != ''
-        uses: peaceiris/actions-gh-pages@v4
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: results/allure-report
-          publish_branch: gh-pages
-          destination_dir: ${{ inputs.branch }}/${{ github.run_id }}
-          keep_files: true
-
-      # The per-run report above never touches the Pages root, so the bare Pages URL
-      # (what GitHub Settings and the API's html_url both show) 404s with no report
-      # ever published there. This keeps a root landing page pointing at the report
-      # this run just published, so that URL always resolves to something current.
-      - name: Update Pages landing page
+      - name: Stage Pages content (report + landing page)
         if: always() && hashFiles('results/allure-report/index.html') != ''
         run: |
-          mkdir -p pages-root
-          cat > pages-root/index.html <<HTML
+          mkdir -p "pages-publish/${{ inputs.branch }}/${{ github.run_id }}"
+          cp -r results/allure-report/. "pages-publish/${{ inputs.branch }}/${{ github.run_id }}/"
+          cat > pages-publish/index.html <<HTML
           <!doctype html>
           <html><head><meta charset="utf-8"><title>Playwright validation reports</title></head>
           <body>
@@ -547,12 +545,12 @@ jobs:
           </body></html>
           HTML
 
-      - name: Publish Pages landing page
+      - name: Publish Pages content
         if: always() && hashFiles('results/allure-report/index.html') != ''
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: pages-root
+          publish_dir: pages-publish
           publish_branch: gh-pages
           keep_files: true
 
@@ -574,32 +572,6 @@ jobs:
           python automation/scripts/validation_report.py \
             --results results/results.json \
             --out results/validation-report.json
-
-      - name: Add report to run summary
-        if: always()
-        run: |
-          report=results/validation-report.json
-          [ -f "$report" ] || exit 0
-          python - <<'PY' >> "$GITHUB_STEP_SUMMARY"
-          import json
-          r = json.load(open("results/validation-report.json"))
-          # No root-cause category exists yet at this stage -- that only comes
-          # from the agent's own LLM classification pass once it fetches this
-          # report, so this summary sticks to raw pass/fail counts.
-          print(f"### Validation: {r['verdict'].upper()}  (confidence {r['confidence']})")
-          print()
-          print(f"- {r['passed']}/{r['total']} passed, {r['failed']} failed, "
-                f"{r['flaky']} flaky, {r['skipped']} skipped")
-          print(f"- confidence: {r['confidence']} - {r['confidence_reason']}")
-          if r["failures"]:
-              print()
-              print("| test | error |")
-              print("|---|---|")
-              for f in r["failures"][:20]:
-                  print(f"| {f['title']} | {f['error'][:200]} |")
-          print()
-          print(r["summary"])
-          PY
 
       - name: Upload validation artifacts
         if: always()
