@@ -30,7 +30,7 @@ test.describe('Archive', () => {
   test('TC02 - Archive page - create and unarchive a habit', async ({ page }) => {
     const newHabitName = `Unarchive Test ${Date.now()}`;
     await page.goto('/');
-    await page.getByLabel('Name').fill(newHabitName);
+    await page.getByRole('textbox', { name: 'New habit name' }).fill(newHabitName);
     await page.getByLabel('Category').selectOption({ index: 1 });
     await page.getByLabel('Target per week').fill('1');
     await page.getByLabel('Notes').fill('Testing unarchive.');
@@ -79,7 +79,7 @@ test.describe('Archive', () => {
   test('TC04 - Archive page - delete an archived habit', async ({ page }) => {
     const habitName = `Delete Archived ${Date.now()}`;
     await page.goto('/');
-    await page.getByLabel('Name').fill(habitName);
+    await page.getByRole('textbox', { name: 'New habit name' }).fill(habitName);
     await page.getByLabel('Category').selectOption({ index: 1 });
     await page.getByLabel('Target per week').fill('2');
     await page.getByLabel('Notes').fill('Deleting archived habit test.');
@@ -147,7 +147,7 @@ test.describe('Archive', () => {
   test('TC07 - History page - habit strips render and show status dots', async ({ page }) => {
     const habitName = `History Test ${Date.now()}`;
     await page.goto('/');
-    await page.getByLabel('Name').fill(habitName);
+    await page.getByRole('textbox', { name: 'New habit name' }).fill(habitName);
     await page.getByLabel('Category').selectOption({ index: 1 });
     await page.getByLabel('Target per week').fill('3');
     await page.getByLabel('Notes').fill('History strip rendering test.');
