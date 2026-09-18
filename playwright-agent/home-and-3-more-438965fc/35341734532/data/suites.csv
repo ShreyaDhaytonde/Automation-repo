@@ -1,0 +1,7 @@
+"DESCRIPTION","DURATION IN MS","NAME","PARENT SUITE","START TIME","STATUS","STOP TIME","SUB SUITE","SUITE","TEST CLASS","TEST METHOD"
+"","11302","TC07 - Home page - renders with heading and controls","chromium","2026-09-18","failed","2026-09-18","Archive","archive.spec.ts","",""
+"","639","TC01 - History page - loads and renders base elements","chromium","2026-09-18","passed","2026-09-18","History","history.spec.ts","",""
+"","11166","TC02 - Archive page - renders with heading and controls","chromium","2026-09-18","failed","2026-09-18","Archive","archive.spec.ts","",""
+"","653","TC01 - Archive page - loads and renders base elements","chromium","2026-09-18","passed","2026-09-18","Archive","archive.spec.ts","",""
+"","559","TC08 - Stats page - renders with heading and controls","chromium","2026-09-18","passed","2026-09-18","Stats","stats.spec.ts","",""
+"","11230","TC06 - History page - renders with heading and controls","chromium","2026-09-18","failed","2026-09-18","Archive","archive.spec.ts","",""
