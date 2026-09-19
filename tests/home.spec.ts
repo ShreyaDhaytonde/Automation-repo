@@ -271,9 +271,10 @@ test.describe('Home', () => {
     const editButton = habitCard.getByRole("button", { name: `Edit ${habitName}` });
     await editButton.click();
     const saveButton = page.getByRole("button", { name: "Save", exact: true });
-    await page.getByLabel(`Edit name for ${habitName}`).fill("");
+    const nameInput = page.getByLabel(`Edit name for ${habitName}`);
+    await nameInput.fill("");
     await expect(saveButton).toBeDisabled();
-    await page.getByLabel(`Edit name for ${habitName}`).fill("   ");
+    await nameInput.fill("   ");
     await expect(saveButton).toBeDisabled();
   });
 
@@ -302,7 +303,8 @@ test.describe('Home', () => {
     await page.getByRole("combobox", { name: "Habit category" }).selectOption("General");
     await page.getByRole("combobox", { name: "Times per week" }).selectOption("7");
     await page.getByRole("button", { name: "Add habit" }).click();
-    await expect(page.getByRole("listitem").filter({ hasText: habitName })).toBeVisible();
+    const habitCard = page.getByRole("listitem").filter({ hasText: habitName });
+    await expect(habitCard).toBeVisible();
   });
 
   /**
@@ -606,10 +608,12 @@ test.describe('Home', () => {
     const habit2 = `Search Beta ${Date.now()}`;
     await page.getByLabel('New habit name').fill(habit1);
     await page.getByRole('button', { name: 'Add habit' }).click();
-    await expect(page.getByRole('listitem').filter({ hasText: habit1 })).toBeVisible();
+    const habit1Card = page.getByRole('listitem').filter({ hasText: habit1 });
+    await expect(habit1Card).toBeVisible();
     await page.getByLabel('New habit name').fill(habit2);
     await page.getByRole('button', { name: 'Add habit' }).click();
-    await expect(page.getByRole('listitem').filter({ hasText: habit2 })).toBeVisible();
+    const habit2Card = page.getByRole('listitem').filter({ hasText: habit2 });
+    await expect(habit2Card).toBeVisible();
     await page.getByLabel('Search habits by name').fill('Alpha');
     await expect(page.getByRole('listitem').filter({ hasText: habit1 })).toBeVisible();
     await expect(page.getByRole('listitem').filter({ hasText: habit2 })).toHaveCount(0);
