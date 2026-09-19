@@ -4,27 +4,57 @@ test.describe('Archive', () => {
   test.setTimeout(60000);
 
   // ──────────────────────────────────────────────────────────────────────────
-  // SECTION 1: Habit duplication
+  // SECTION 1: Archive page load
   // ──────────────────────────────────────────────────────────────────────────
 
   /**
-   * TC01: HabitCard - duplicate habit button is visible and clickable on archived habits
+   * TC01: Archive page - loads with heading and main controls visible
    */
-  test('TC01 - HabitCard - duplicate habit button is visible and clickable on archived habits', async ({ page }) => {
+  test('TC01 - Archive page - loads with heading and main controls visible', async ({ page }) => {
+    await page.goto("/archive");
+    await expect(page.getByRole("heading", { name: "Archive" })).toBeVisible();
+    await expect(page.getByText("Habits you've archived, out of the main list.")).toBeVisible();
+    await expect(page.getByRole("link", { name: "← Back to habits" })).toBeVisible();
+  });
+
+  // ──────────────────────────────────────────────────────────────────────────
+  // SECTION 2: Habit duplication
+  // ──────────────────────────────────────────────────────────────────────────
+
+  /**
+   * TC02: Archived habit card - duplicates an archived habit without error
+   */
+  test('TC02 - Archived habit card - duplicates an archived habit without error', async ({ page }) => {
+    await page.goto("/archive");
+    const listItems = page.getByRole("listitem");
+    if ((await listItems.count()) === 0) {
+      // No archived habits available to duplicate, skip test.
+      return;
+    }
+    const firstArchivedHabit = listItems.nth(0);
+    const habitName = await firstArchivedHabit.locator("p").first().textContent();
+    await firstArchivedHabit.getByRole("button", { name: new RegExp(`Duplicate ${habitName}`) }).click();
+    await expect(page.getByText("Could not duplicate that habit — try again.")).toHaveCount(0);
+  });
+
+  // ──────────────────────────────────────────────────────────────────────────
+  // SECTION 3: Archive
+  // ──────────────────────────────────────────────────────────────────────────
+
+  /**
+   * TC03: HabitCard - duplicate habit button is visible and clickable on archived habits
+   */
+  test('TC03 - HabitCard - duplicate habit button is visible and clickable on archived habits', async ({ page }) => {
     await page.goto("/archive");
     const habitCard = page.getByRole("listitem").first();
     await expect(habitCard.getByRole("button", { name: new RegExp("Duplicate ") })).toBeVisible();
     await habitCard.getByRole("button", { name: new RegExp("Duplicate ") }).click();
   });
 
-  // ──────────────────────────────────────────────────────────────────────────
-  // SECTION 2: Archive
-  // ──────────────────────────────────────────────────────────────────────────
-
   /**
-   * TC02: Archive page - loads and shows static elements
+   * TC04: Archive page - loads and shows static elements
    */
-  test('TC02 - Archive page - loads and shows static elements', async ({ page }) => {
+  test('TC04 - Archive page - loads and shows static elements', async ({ page }) => {
     await page.goto('/archive');
     await expect(page.getByRole('heading', { name: 'Archive' })).toBeVisible();
     await expect(page.getByRole('link', { name: '← Back to habits' })).toBeVisible();
@@ -33,9 +63,9 @@ test.describe('Archive', () => {
   });
 
   /**
-   * TC03: Archive page - can delete an archived habit
+   * TC05: Archive page - can delete an archived habit
    */
-  test('TC03 - Archive page - can delete an archived habit', async ({ page }) => {
+  test('TC05 - Archive page - can delete an archived habit', async ({ page }) => {
     await page.goto('/');
     const uniqueName = `Test Delete ${Date.now()}`;
     await page.getByLabel('New habit name').fill(uniqueName);
@@ -55,9 +85,9 @@ test.describe('Archive', () => {
   });
 
   /**
-   * TC04: Archive page - can unarchive an archived habit
+   * TC06: Archive page - can unarchive an archived habit
    */
-  test('TC04 - Archive page - can unarchive an archived habit', async ({ page }) => {
+  test('TC06 - Archive page - can unarchive an archived habit', async ({ page }) => {
     await page.goto('/');
     const uniqueName = `Test Unarchive ${Date.now()}`;
     await page.getByLabel('New habit name').fill(uniqueName);
@@ -76,9 +106,9 @@ test.describe('Archive', () => {
   });
 
   /**
-   * TC05: Archive page - can edit an archived habit\'s details
+   * TC07: Archive page - can edit an archived habit\\\'s details
    */
-  test('TC05 - Archive page - can edit an archived habit\\\'s details', async ({ page }) => {
+  test('TC07 - Archive page - can edit an archived habit\\\\\\\'s details', async ({ page }) => {
     await page.goto('/');
     const uniqueName = `Test Edit ${Date.now()}`;
     await page.getByLabel('New habit name').fill(uniqueName);
@@ -103,9 +133,9 @@ test.describe('Archive', () => {
   });
 
   /**
-   * TC06: Archive page - can navigate back to home page
+   * TC08: Archive page - can navigate back to home page
    */
-  test('TC06 - Archive page - can navigate back to home page', async ({ page }) => {
+  test('TC08 - Archive page - can navigate back to home page', async ({ page }) => {
     await page.goto('/archive');
     await page.getByRole('link', { name: '← Back to habits' }).click();
     await expect(page).toHaveURL('/');
@@ -113,17 +143,17 @@ test.describe('Archive', () => {
   });
 
   /**
-   * TC07: Archive page - error message appears when loading fails (non-deterministic)
+   * TC09: Archive page - error message appears when loading fails (non-deterministic)
    */
-  test('TC07 - Archive page - error message appears when loading fails (non-deterministic)', async ({ page }) => {
+  test('TC09 - Archive page - error message appears when loading fails (non-deterministic)', async ({ page }) => {
     await page.goto('/archive');
     await expect(page.locator('text=Could not load archived habits. Is the API running?')).toBeHidden();
   });
 
   /**
-   * TC08: Archive page - empty state message is shown when no habits are archived (not reachable without backend control)
+   * TC10: Archive page - empty state message is shown when no habits are archived (not reachable without backend control)
    */
-  test('TC08 - Archive page - empty state message is shown when no habits are archived (not reachable without backend control)', async ({ page }) => {
+  test('TC10 - Archive page - empty state message is shown when no habits are archived (not reachable without backend control)', async ({ page }) => {
     await page.goto('/archive');
     await expect(page.locator('text=No archived habits — anything you archive from the home page shows up here.')).toBeHidden();
   });
