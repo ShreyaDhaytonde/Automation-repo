@@ -1,0 +1,705 @@
+# Instructions
+
+- Following Playwright test failed.
+- Explain why, be concise, respect Playwright best practices.
+- Provide a snippet of code with the fix, if possible.
+
+# Test info
+
+- Name: home.spec.ts >> Home >> TC41 - HabitCard - marks a habit as completed today
+- Location: tests/home.spec.ts:725:7
+
+# Error details
+
+```
+Error: expect(locator).toBeVisible() failed
+
+Locator: getByRole('listitem').filter({ hasText: 'Complete Habit 1789839240808' })
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toBeVisible" getByRole('listitem').filter({ hasText: 'Complete Habit 1789839240808' }) with timeout 10000ms
+  - waiting for getByRole('listitem').filter({ hasText: 'Complete Habit 1789839240808' })
+
+```
+
+```yaml
+- main:
+  - heading "Habit Tracker" [level=1]
+  - paragraph: Build small daily habits, one day at a time.
+  - link "History":
+    - /url: /history
+  - link "View stats":
+    - /url: /stats
+  - link "Archive":
+    - /url: /archive
+  - button "Switch to dark mode": 🌙 Dark
+  - button "Logout"
+  - textbox "New habit name":
+    - /placeholder: e.g. Drink more water
+  - combobox "Habit category":
+    - option "General" [selected]
+    - option "Health"
+    - option "Work"
+    - option "Personal"
+    - option "Learning"
+  - combobox "Times per week":
+    - option "1x / week"
+    - option "2x / week"
+    - option "3x / week"
+    - option "4x / week"
+    - option "5x / week"
+    - option "6x / week"
+    - option "7x / week" [selected]
+  - textbox "Notes (optional)"
+  - button "Add habit" [disabled]
+  - text: Search habits by name
+  - searchbox "Search habits by name"
+  - text: Sort by
+  - combobox "Sort habits by":
+    - option "Name (A-Z)" [selected]
+    - option "Streak (highest first)"
+    - option "Category"
+    - option "Weekly target (highest first)"
+  - text: Filter by category
+  - combobox "Filter by category":
+    - option "All" [selected]
+    - option "General"
+    - option "Health"
+    - option "Work"
+    - option "Personal"
+    - option "Learning"
+  - checkbox "Show archived"
+  - text: Show archived
+  - button "Complete all for today (30)"
+  - button "Export JSON"
+  - button "Export CSV"
+  - list:
+    - listitem:
+      - paragraph: Archive Test 1789839162679
+      - text: General
+      - status "Archive Test 1789839162679 is at risk of missing its weekly goal": ⏰ Due today
+      - paragraph: Start your streak today!
+      - progressbar "Archive Test 1789839162679 weekly progress"
+      - text: 0/7 this week
+      - button "Mark done"
+      - button "Freeze Archive Test 1789839162679 for today": 🧊 Freeze
+      - button "Edit Archive Test 1789839162679": Edit
+      - button "Duplicate Archive Test 1789839162679": Duplicate
+      - button "Archive Archive Test 1789839162679": Archive
+      - button "Delete Archive Test 1789839162679": Remove
+    - listitem:
+      - paragraph: Cancel edit habit 1789838997405
+      - text: General
+      - status "Cancel edit habit 1789838997405 is at risk of missing its weekly goal": ⏰ Due today
+      - paragraph: Start your streak today!
+      - progressbar "Cancel edit habit 1789838997405 weekly progress"
+      - text: 0/3 this week
+      - button "Mark done"
+      - button "Freeze Cancel edit habit 1789838997405 for today": 🧊 Freeze
+      - button "Edit Cancel edit habit 1789838997405": Edit
+      - button "Duplicate Cancel edit habit 1789838997405": Duplicate
+      - button "Archive Cancel edit habit 1789838997405": Archive
+      - button "Delete Cancel edit habit 1789838997405": Remove
+    - listitem:
+      - paragraph: Complete Habit 1789839229160
+      - text: General
+      - status "Complete Habit 1789839229160 is at risk of missing its weekly goal": ⏰ Due today
+      - paragraph: Start your streak today!
+      - progressbar "Complete Habit 1789839229160 weekly progress"
+      - text: 0/7 this week
+      - button "Mark done"
+      - button "Freeze Complete Habit 1789839229160 for today": 🧊 Freeze
+      - button "Edit Complete Habit 1789839229160": Edit
+      - button "Duplicate Complete Habit 1789839229160": Duplicate
+      - button "Archive Complete Habit 1789839229160": Archive
+      - button "Delete Complete Habit 1789839229160": Remove
+    - listitem:
+      - paragraph: CompleteTest 1789838951949
+      - text: General
+      - paragraph: 🔥 1 day streak
+      - progressbar "CompleteTest 1789838951949 weekly progress"
+      - text: 1/7 this week
+      - button "Done today" [disabled]
+      - button "Freeze CompleteTest 1789838951949 for today" [disabled]: 🧊 Freeze
+      - button "Edit CompleteTest 1789838951949": Edit
+      - button "Duplicate CompleteTest 1789838951949": Duplicate
+      - button "Archive CompleteTest 1789838951949": Archive
+      - button "Delete CompleteTest 1789838951949": Remove
+    - listitem:
+      - paragraph: CompleteTest 1789838963962
+      - text: General
+      - paragraph: 🔥 1 day streak
+      - progressbar "CompleteTest 1789838963962 weekly progress"
+      - text: 1/7 this week
+      - button "Done today" [disabled]
+      - button "Freeze CompleteTest 1789838963962 for today" [disabled]: 🧊 Freeze
+      - button "Edit CompleteTest 1789838963962": Edit
+      - button "Duplicate CompleteTest 1789838963962": Duplicate
+      - button "Archive CompleteTest 1789838963962": Archive
+      - button "Delete CompleteTest 1789838963962": Remove
+    - listitem:
+      - paragraph: Daily completion habit 1789839001601
+      - text: General
+      - status "Daily completion habit 1789839001601 is at risk of missing its weekly goal": ⏰ Due today
+      - paragraph: Start your streak today!
+      - progressbar "Daily completion habit 1789839001601 weekly progress"
+      - text: 0/7 this week
+      - button "Mark done"
+      - button "Freeze Daily completion habit 1789839001601 for today": 🧊 Freeze
+      - button "Edit Daily completion habit 1789839001601": Edit
+      - button "Duplicate Daily completion habit 1789839001601": Duplicate
+      - button "Archive Daily completion habit 1789839001601": Archive
+      - button "Delete Daily completion habit 1789839001601": Remove
+    - listitem:
+      - paragraph: Edit habit 1789838995671 updated
+      - text: Health
+      - status "Edit habit 1789838995671 updated is at risk of missing its weekly goal": ⏰ Due today
+      - paragraph: Start your streak today!
+      - progressbar "Edit habit 1789838995671 updated weekly progress"
+      - text: 0/5 this week
+      - button "Mark done"
+      - button "Freeze Edit habit 1789838995671 updated for today": 🧊 Freeze
+      - button "Edit Edit habit 1789838995671 updated": Edit
+      - button "Duplicate Edit habit 1789838995671 updated": Duplicate
+      - button "Archive Edit habit 1789838995671 updated": Archive
+      - button "Delete Edit habit 1789838995671 updated": Remove
+    - listitem:
+      - paragraph: Edit validation habit 1789838998506
+      - text: General
+      - status "Edit validation habit 1789838998506 is at risk of missing its weekly goal": ⏰ Due today
+      - paragraph: Start your streak today!
+      - progressbar "Edit validation habit 1789838998506 weekly progress"
+      - text: 0/3 this week
+      - button "Mark done"
+      - button "Freeze Edit validation habit 1789838998506 for today": 🧊 Freeze
+      - button "Edit Edit validation habit 1789838998506": Edit
+      - button "Duplicate Edit validation habit 1789838998506": Duplicate
+      - button "Archive Edit validation habit 1789838998506": Archive
+      - button "Delete Edit validation habit 1789838998506": Remove
+    - listitem:
+      - paragraph: EditTest 1789838351540
+      - text: General
+      - status "EditTest 1789838351540 is at risk of missing its weekly goal": ⏰ Due today
+      - paragraph: Start your streak today!
+      - progressbar "EditTest 1789838351540 weekly progress"
+      - text: 0/7 this week
+      - button "Mark done"
+      - button "Freeze EditTest 1789838351540 for today": 🧊 Freeze
+      - button "Edit EditTest 1789838351540": Edit
+      - button "Duplicate EditTest 1789838351540": Duplicate
+      - button "Archive EditTest 1789838351540": Archive
+      - button "Delete EditTest 1789838351540": Remove
+    - listitem:
+      - paragraph: EditTest 1789838351540 (copy)
+      - text: General
+      - status "EditTest 1789838351540 (copy) is at risk of missing its weekly goal": ⏰ Due today
+      - paragraph: Start your streak today!
+      - progressbar "EditTest 1789838351540 (copy) weekly progress"
+      - text: 0/7 this week
+      - button "Mark done"
+      - button "Freeze EditTest 1789838351540 (copy) for today": 🧊 Freeze
+      - button "Edit EditTest 1789838351540 (copy)": Edit
+      - button "Duplicate EditTest 1789838351540 (copy)": Duplicate
+      - button "Archive EditTest 1789838351540 (copy)": Archive
+      - button "Delete EditTest 1789838351540 (copy)": Remove
+    - listitem:
+      - paragraph: EditTest 1789838412962
+      - text: General
+      - status "EditTest 1789838412962 is at risk of missing its weekly goal": ⏰ Due today
+      - paragraph: Start your streak today!
+      - progressbar "EditTest 1789838412962 weekly progress"
+      - text: 0/7 this week
+      - button "Mark done"
+      - button "Freeze EditTest 1789838412962 for today": 🧊 Freeze
+      - button "Edit EditTest 1789838412962": Edit
+      - button "Duplicate EditTest 1789838412962": Duplicate
+      - button "Archive EditTest 1789838412962": Archive
+      - button "Delete EditTest 1789838412962": Remove
+    - listitem:
+      - paragraph: EditTest 1789838829302
+      - text: General
+      - status "EditTest 1789838829302 is at risk of missing its weekly goal": ⏰ Due today
+      - paragraph: Start your streak today!
+      - progressbar "EditTest 1789838829302 weekly progress"
+      - text: 0/7 this week
+      - button "Mark done"
+      - button "Freeze EditTest 1789838829302 for today": 🧊 Freeze
+      - button "Edit EditTest 1789838829302": Edit
+      - button "Duplicate EditTest 1789838829302": Duplicate
+      - button "Archive EditTest 1789838829302": Archive
+      - button "Delete EditTest 1789838829302": Remove
+    - listitem:
+      - paragraph: EditTest 1789838890571
+      - text: General
+      - status "EditTest 1789838890571 is at risk of missing its weekly goal": ⏰ Due today
+      - paragraph: Start your streak today!
+      - progressbar "EditTest 1789838890571 weekly progress"
+      - text: 0/7 this week
+      - button "Mark done"
+      - button "Freeze EditTest 1789838890571 for today": 🧊 Freeze
+      - button "Edit EditTest 1789838890571": Edit
+      - button "Duplicate EditTest 1789838890571": Duplicate
+      - button "Archive EditTest 1789838890571": Archive
+      - button "Delete EditTest 1789838890571": Remove
+    - listitem:
+      - paragraph: Export Test 1789839226101
+      - text: General
+      - status "Export Test 1789839226101 is at risk of missing its weekly goal": ⏰ Due today
+      - paragraph: Start your streak today!
+      - progressbar "Export Test 1789839226101 weekly progress"
+      - text: 0/7 this week
+      - button "Mark done"
+      - button "Freeze Export Test 1789839226101 for today": 🧊 Freeze
+      - button "Edit Export Test 1789839226101": Edit
+      - button "Duplicate Export Test 1789839226101": Duplicate
+      - button "Archive Export Test 1789839226101": Archive
+      - button "Delete Export Test 1789839226101": Remove
+    - listitem:
+      - paragraph: Habit 1789838349739
+      - text: General
+      - status "Habit 1789838349739 is at risk of missing its weekly goal": ⏰ Due today
+      - paragraph: Start your streak today!
+      - progressbar "Habit 1789838349739 weekly progress"
+      - text: 0/7 this week
+      - button "Mark done"
+      - button "Freeze Habit 1789838349739 for today": 🧊 Freeze
+      - button "Edit Habit 1789838349739": Edit
+      - button "Duplicate Habit 1789838349739": Duplicate
+      - button "Archive Habit 1789838349739": Archive
+      - button "Delete Habit 1789838349739": Remove
+    - listitem:
+      - paragraph: Habit 1789838349739 (copy)
+      - text: General
+      - status "Habit 1789838349739 (copy) is at risk of missing its weekly goal": ⏰ Due today
+      - paragraph: Start your streak today!
+      - progressbar "Habit 1789838349739 (copy) weekly progress"
+      - text: 0/7 this week
+      - button "Mark done"
+      - button "Freeze Habit 1789838349739 (copy) for today": 🧊 Freeze
+      - button "Edit Habit 1789838349739 (copy)": Edit
+      - button "Duplicate Habit 1789838349739 (copy)": Duplicate
+      - button "Archive Habit 1789838349739 (copy)": Archive
+      - button "Delete Habit 1789838349739 (copy)": Remove
+    - listitem:
+      - paragraph: Habit 1789838350942
+      - text: General
+      - status "Habit 1789838350942 is at risk of missing its weekly goal": ⏰ Due today
+      - paragraph: Start your streak today!
+      - progressbar "Habit 1789838350942 weekly progress"
+      - text: 0/7 this week
+      - paragraph: Test notes
+      - button "Mark done"
+      - button "Freeze Habit 1789838350942 for today": 🧊 Freeze
+      - button "Edit Habit 1789838350942": Edit
+      - button "Duplicate Habit 1789838350942": Duplicate
+      - button "Archive Habit 1789838350942": Archive
+      - button "Delete Habit 1789838350942": Remove
+    - listitem:
+      - paragraph: Habit 1789838828456
+      - text: General
+      - status "Habit 1789838828456 is at risk of missing its weekly goal": ⏰ Due today
+      - paragraph: Start your streak today!
+      - progressbar "Habit 1789838828456 weekly progress"
+      - text: 0/7 this week
+      - paragraph: Test notes
+      - button "Mark done"
+      - button "Freeze Habit 1789838828456 for today": 🧊 Freeze
+      - button "Edit Habit 1789838828456": Edit
+      - button "Duplicate Habit 1789838828456": Duplicate
+      - button "Archive Habit 1789838828456": Archive
+      - button "Delete Habit 1789838828456": Remove
+    - listitem:
+      - paragraph: Search Alpha 1789839085515
+      - text: General
+      - status "Search Alpha 1789839085515 is at risk of missing its weekly goal": ⏰ Due today
+      - paragraph: Start your streak today!
+      - progressbar "Search Alpha 1789839085515 weekly progress"
+      - text: 0/7 this week
+      - button "Mark done"
+      - button "Freeze Search Alpha 1789839085515 for today": 🧊 Freeze
+      - button "Edit Search Alpha 1789839085515": Edit
+      - button "Duplicate Search Alpha 1789839085515": Duplicate
+      - button "Archive Search Alpha 1789839085515": Archive
+      - button "Delete Search Alpha 1789839085515": Remove
+    - listitem:
+      - paragraph: SortA 1789838993308
+      - text: General
+      - status "SortA 1789838993308 is at risk of missing its weekly goal": ⏰ Due today
+      - paragraph: Start your streak today!
+      - progressbar "SortA 1789838993308 weekly progress"
+      - text: 0/7 this week
+      - button "Mark done"
+      - button "Freeze SortA 1789838993308 for today": 🧊 Freeze
+      - button "Edit SortA 1789838993308": Edit
+      - button "Duplicate SortA 1789838993308": Duplicate
+      - button "Archive SortA 1789838993308": Archive
+      - button "Delete SortA 1789838993308": Remove
+    - listitem:
+      - paragraph: SortB 1789838993309
+      - text: General
+      - status "SortB 1789838993309 is at risk of missing its weekly goal": ⏰ Due today
+      - paragraph: Start your streak today!
+      - progressbar "SortB 1789838993309 weekly progress"
+      - text: 0/7 this week
+      - button "Mark done"
+      - button "Freeze SortB 1789838993309 for today": 🧊 Freeze
+      - button "Edit SortB 1789838993309": Edit
+      - button "Duplicate SortB 1789838993309": Duplicate
+      - button "Archive SortB 1789838993309": Archive
+      - button "Delete SortB 1789838993309": Remove
+    - listitem:
+      - paragraph: Test Delete 1789838318091 (copy)
+      - text: General
+      - status "Test Delete 1789838318091 (copy) is at risk of missing its weekly goal": ⏰ Due today
+      - paragraph: Start your streak today!
+      - progressbar "Test Delete 1789838318091 (copy) weekly progress"
+      - text: 0/7 this week
+      - button "Mark done"
+      - button "Freeze Test Delete 1789838318091 (copy) for today": 🧊 Freeze
+      - button "Edit Test Delete 1789838318091 (copy)": Edit
+      - button "Duplicate Test Delete 1789838318091 (copy)": Duplicate
+      - button "Archive Test Delete 1789838318091 (copy)": Archive
+      - button "Delete Test Delete 1789838318091 (copy)": Remove
+    - listitem:
+      - paragraph: Test Delete 1789838750218
+      - text: General
+      - status "Test Delete 1789838750218 is at risk of missing its weekly goal": ⏰ Due today
+      - paragraph: Start your streak today!
+      - progressbar "Test Delete 1789838750218 weekly progress"
+      - text: 0/7 this week
+      - button "Mark done"
+      - button "Freeze Test Delete 1789838750218 for today": 🧊 Freeze
+      - button "Edit Test Delete 1789838750218": Edit
+      - button "Duplicate Test Delete 1789838750218": Duplicate
+      - button "Archive Test Delete 1789838750218": Archive
+      - button "Delete Test Delete 1789838750218": Remove
+    - listitem:
+      - paragraph: Test Delete 1789838762530
+      - text: General
+      - status "Test Delete 1789838762530 is at risk of missing its weekly goal": ⏰ Due today
+      - paragraph: Start your streak today!
+      - progressbar "Test Delete 1789838762530 weekly progress"
+      - text: 0/7 this week
+      - button "Mark done"
+      - button "Freeze Test Delete 1789838762530 for today": 🧊 Freeze
+      - button "Edit Test Delete 1789838762530": Edit
+      - button "Duplicate Test Delete 1789838762530": Duplicate
+      - button "Archive Test Delete 1789838762530": Archive
+      - button "Delete Test Delete 1789838762530": Remove
+    - listitem:
+      - paragraph: Test Edit 1789838799258
+      - text: General
+      - status "Test Edit 1789838799258 is at risk of missing its weekly goal": ⏰ Due today
+      - paragraph: Start your streak today!
+      - progressbar "Test Edit 1789838799258 weekly progress"
+      - text: 0/7 this week
+      - button "Mark done"
+      - button "Freeze Test Edit 1789838799258 for today": 🧊 Freeze
+      - button "Edit Test Edit 1789838799258": Edit
+      - button "Duplicate Test Edit 1789838799258": Duplicate
+      - button "Archive Test Edit 1789838799258": Archive
+      - button "Delete Test Edit 1789838799258": Remove
+    - listitem:
+      - paragraph: Test Edit 1789838811363
+      - text: General
+      - status "Test Edit 1789838811363 is at risk of missing its weekly goal": ⏰ Due today
+      - paragraph: Start your streak today!
+      - progressbar "Test Edit 1789838811363 weekly progress"
+      - text: 0/7 this week
+      - button "Mark done"
+      - button "Freeze Test Edit 1789838811363 for today": 🧊 Freeze
+      - button "Edit Test Edit 1789838811363": Edit
+      - button "Duplicate Test Edit 1789838811363": Duplicate
+      - button "Archive Test Edit 1789838811363": Archive
+      - button "Delete Test Edit 1789838811363": Remove
+    - listitem:
+      - paragraph: Test Habit 1789839226974
+      - text: General
+      - paragraph: Start your streak today!
+      - progressbar "Test Habit 1789839226974 weekly progress"
+      - text: 0/1 this week
+      - paragraph: Test notes
+      - button "Mark done"
+      - button "Freeze Test Habit 1789839226974 for today": 🧊 Freeze
+      - button "Edit Test Habit 1789839226974": Edit
+      - button "Duplicate Test Habit 1789839226974": Duplicate
+      - button "Archive Test Habit 1789839226974": Archive
+      - button "Delete Test Habit 1789839226974": Remove
+    - listitem:
+      - paragraph: Test habit create 1789838999989
+      - text: General
+      - status "Test habit create 1789838999989 is at risk of missing its weekly goal": ⏰ Due today
+      - paragraph: Start your streak today!
+      - progressbar "Test habit create 1789838999989 weekly progress"
+      - text: 0/7 this week
+      - button "Mark done"
+      - button "Freeze Test habit create 1789838999989 for today": 🧊 Freeze
+      - button "Edit Test habit create 1789838999989": Edit
+      - button "Duplicate Test habit create 1789838999989": Duplicate
+      - button "Archive Test habit create 1789838999989": Archive
+      - button "Delete Test habit create 1789838999989": Remove
+    - listitem:
+      - paragraph: Test Unarchive 1789838343420
+      - text: General
+      - status "Test Unarchive 1789838343420 is at risk of missing its weekly goal": ⏰ Due today
+      - paragraph: Start your streak today!
+      - progressbar "Test Unarchive 1789838343420 weekly progress"
+      - text: 0/7 this week
+      - button "Mark done"
+      - button "Freeze Test Unarchive 1789838343420 for today": 🧊 Freeze
+      - button "Edit Test Unarchive 1789838343420": Edit
+      - button "Duplicate Test Unarchive 1789838343420": Duplicate
+      - button "Archive Test Unarchive 1789838343420": Archive
+      - button "Delete Test Unarchive 1789838343420": Remove
+    - listitem:
+      - paragraph: Test Unarchive 1789838774649
+      - text: General
+      - status "Test Unarchive 1789838774649 is at risk of missing its weekly goal": ⏰ Due today
+      - paragraph: Start your streak today!
+      - progressbar "Test Unarchive 1789838774649 weekly progress"
+      - text: 0/7 this week
+      - button "Mark done"
+      - button "Freeze Test Unarchive 1789838774649 for today": 🧊 Freeze
+      - button "Edit Test Unarchive 1789838774649": Edit
+      - button "Duplicate Test Unarchive 1789838774649": Duplicate
+      - button "Archive Test Unarchive 1789838774649": Archive
+      - button "Delete Test Unarchive 1789838774649": Remove
+    - listitem:
+      - paragraph: Test Unarchive 1789838786771
+      - text: General
+      - status "Test Unarchive 1789838786771 is at risk of missing its weekly goal": ⏰ Due today
+      - paragraph: Start your streak today!
+      - progressbar "Test Unarchive 1789838786771 weekly progress"
+      - text: 0/7 this week
+      - button "Mark done"
+      - button "Freeze Test Unarchive 1789838786771 for today": 🧊 Freeze
+      - button "Edit Test Unarchive 1789838786771": Edit
+      - button "Duplicate Test Unarchive 1789838786771": Duplicate
+      - button "Archive Test Unarchive 1789838786771": Archive
+      - button "Delete Test Unarchive 1789838786771": Remove
+    - listitem:
+      - paragraph: Updated Habit 1789839228034
+      - text: Health
+      - status "Updated Habit 1789839228034 is at risk of missing its weekly goal": ⏰ Due today
+      - paragraph: Start your streak today!
+      - progressbar "Updated Habit 1789839228034 weekly progress"
+      - text: 0/3 this week
+      - paragraph: Updated notes
+      - button "Mark done"
+      - button "Freeze Updated Habit 1789839228034 for today": 🧊 Freeze
+      - button "Edit Updated Habit 1789839228034": Edit
+      - button "Duplicate Updated Habit 1789839228034": Duplicate
+      - button "Archive Updated Habit 1789839228034": Archive
+      - button "Delete Updated Habit 1789839228034": Remove
+- alert
+```
+
+# Test source
+
+```ts
+  631 |   });
+  632 | 
+  633 |   /**
+  634 |    * TC36: Home page - category filter updates visible habits
+  635 |    */
+  636 |   test('TC36 - Home page - category filter updates visible habits', async ({ page }) => {
+  637 |     await page.goto('/');
+  638 |     const catHabit1 = `Category Health ${Date.now()}`;
+  639 |     const catHabit2 = `Category Work ${Date.now()}`;
+  640 |     await page.getByLabel('New habit name').fill(catHabit1);
+  641 |     await page.getByLabel('Habit category').selectOption('Health');
+  642 |     await page.getByRole('button', { name: 'Add habit' }).click();
+  643 |     await page.getByLabel('New habit name').fill(catHabit2);
+  644 |     await page.getByLabel('Habit category').selectOption('Work');
+  645 |     await page.getByRole('button', { name: 'Add habit' }).click();
+  646 |     const filterDropdown = page.getByLabel('Filter by category');
+  647 |     await filterDropdown.selectOption('Health');
+  648 |     await expect(page.getByRole('listitem').filter({ hasText: catHabit1 })).toBeVisible();
+  649 |     await expect(page.getByRole('listitem').filter({ hasText: catHabit2 })).toHaveCount(0);
+  650 |   });
+  651 | 
+  652 |   /**
+  653 |    * TC37: Home page - toggling show archived controls archived habits visibility
+  654 |    */
+  655 |   test('TC37 - Home page - toggling show archived controls archived habits visibility', async ({ page }) => {
+  656 |     await page.goto('/');
+  657 |     const archName = 'Archive Test ' + Date.now();
+  658 |     await page.getByLabel('New habit name').fill(archName);
+  659 |     await page.getByRole('button', { name: 'Add habit' }).click();
+  660 |     const habitCard = page.getByRole('listitem').filter({ hasText: archName });
+  661 |     await habitCard.getByRole('button', { name: `Archive ${archName}` }).click();
+  662 |     await expect(page.getByRole('listitem').filter({ hasText: archName })).toHaveCount(0);
+  663 |     const showArchivedCheckbox = page.getByLabel('Show archived');
+  664 |     await showArchivedCheckbox.check();
+  665 |     const archivedHabitCard = page.getByRole('listitem').filter({ hasText: archName });
+  666 |     await expect(archivedHabitCard).toBeVisible();
+  667 |   });
+  668 | 
+  669 |   /**
+  670 |    * TC38: Home page - Export JSON and CSV buttons visibility and disabled state
+  671 |    */
+  672 |   test('TC38 - Home page - Export JSON and CSV buttons visibility and disabled state', async ({ page }) => {
+  673 |     await page.goto('/');
+  674 |     const exportJsonButton = page.getByRole('button', { name: 'Export JSON' });
+  675 |     const exportCsvButton = page.getByRole('button', { name: 'Export CSV' });
+  676 |     await expect(exportJsonButton).toBeVisible();
+  677 |     await expect(exportCsvButton).toBeVisible();
+  678 |     await expect(exportJsonButton).toBeDisabled();
+  679 |     await expect(exportCsvButton).toBeDisabled();
+  680 |     await page.getByLabel('New habit name').fill('Export Test ' + Date.now());
+  681 |     await page.getByRole('button', { name: 'Add habit' }).click();
+  682 |     await expect(exportJsonButton).toBeEnabled();
+  683 |     await expect(exportCsvButton).toBeEnabled();
+  684 |   });
+  685 | 
+  686 |   /**
+  687 |    * TC39: HabitForm - creates a new habit successfully
+  688 |    */
+  689 |   test('TC39 - HabitForm - creates a new habit successfully', async ({ page }) => {
+  690 |     await page.goto('/');
+  691 |     const habitName = `Test Habit ${Date.now()}`;
+  692 |     await page.getByLabel('New habit name').fill(habitName);
+  693 |     await page.getByLabel('Habit category').selectOption('General');
+  694 |     await page.getByLabel('Times per week').selectOption('1');
+  695 |     await page.getByLabel('Notes (optional)').fill('Test notes');
+  696 |     await page.getByRole('button', { name: 'Add habit' }).click();
+  697 |     await expect(page.getByRole('listitem').filter({ hasText: habitName })).toBeVisible();
+  698 |   });
+  699 | 
+  700 |   /**
+  701 |    * TC40: HabitCard - edits an existing habit\\\'s name, category, target per week, and notes
+  702 |    */
+  703 |   test('TC40 - HabitCard - edits an existing habit\\\\\\\'s name, category, target per week, and notes', async ({ page }) => {
+  704 |     await page.goto('/');
+  705 |     const originalName = `Original Habit ${Date.now()}`;
+  706 |     const updatedName = `Updated Habit ${Date.now()}`;
+  707 |     await page.getByLabel('New habit name').fill(originalName);
+  708 |     await page.getByRole('button', { name: 'Add habit' }).click();
+  709 |     const habitCard = page.getByRole('listitem').filter({ hasText: originalName });
+  710 |     await expect(habitCard).toBeVisible();
+  711 |     await habitCard.getByRole('button', { name: `Edit` }).click();
+  712 |     const nameInput = page.getByLabel(`Edit name for ${originalName}`);
+  713 |     await expect(nameInput).toHaveValue(originalName);
+  714 |     await nameInput.fill(updatedName);
+  715 |     await page.getByLabel(`Edit category for ${originalName}`).selectOption('Health');
+  716 |     await page.getByLabel(`Edit times per week for ${originalName}`).selectOption('3');
+  717 |     await page.getByLabel(`Edit notes for ${originalName}`).fill('Updated notes');
+  718 |     await page.getByRole('button', { name: 'Save' }).click();
+  719 |     await expect(page.getByRole('listitem').filter({ hasText: updatedName })).toBeVisible();
+  720 |   });
+  721 | 
+  722 |   /**
+  723 |    * TC41: HabitCard - marks a habit as completed today
+  724 |    */
+  725 |   test('TC41 - HabitCard - marks a habit as completed today', async ({ page }) => {
+  726 |     await page.goto('/');
+  727 |     const habitName = `Complete Habit ${Date.now()}`;
+  728 |     await page.getByLabel('New habit name').fill(habitName);
+  729 |     await page.getByRole('button', { name: 'Add habit' }).click();
+  730 |     const habitCard = page.getByRole('listitem').filter({ hasText: habitName });
+> 731 |     await expect(habitCard).toBeVisible();
+      |                             ^ Error: expect(locator).toBeVisible() failed
+  732 |     const markDoneButton = habitCard.getByRole('button', { name: 'Mark done' });
+  733 |     await markDoneButton.click();
+  734 |     await expect(habitCard.getByRole('button', { name: 'Done today' })).toBeVisible();
+  735 |     await expect(habitCard.getByRole('button', { name: 'Done today' })).toBeDisabled();
+  736 |   });
+  737 | 
+  738 |   /**
+  739 |    * TC42: HabitCard - toggles archive and unarchive of a habit
+  740 |    */
+  741 |   test('TC42 - HabitCard - toggles archive and unarchive of a habit', async ({ page }) => {
+  742 |     await page.goto('/');
+  743 |     const habitName = `Archive Habit ${Date.now()}`;
+  744 |     await page.getByLabel('New habit name').fill(habitName);
+  745 |     const addButton = page.getByRole('button', { name: 'Add habit' });
+  746 |     await expect(addButton).toBeEnabled();
+  747 |     await addButton.click();
+  748 |     const habitCard = page.getByRole('listitem').filter({ hasText: habitName });
+  749 |     await expect(habitCard).toBeVisible();
+  750 |     const archiveButton = habitCard.getByRole('button', { name: `Archive ${habitName}` });
+  751 |     await archiveButton.click();
+  752 |     await expect(page.getByRole('listitem').filter({ hasText: habitName })).toHaveCount(0);
+  753 |     const showArchivedCheckbox = page.getByLabel('Show archived');
+  754 |     await showArchivedCheckbox.check();
+  755 |     const archivedHabitCard = page.getByRole('listitem').filter({ hasText: habitName });
+  756 |     await expect(archivedHabitCard).toBeVisible();
+  757 |     const unarchiveButton = archivedHabitCard.getByRole('button', { name: `Unarchive ${habitName}` });
+  758 |     await unarchiveButton.click();
+  759 |     await expect(page.getByRole('listitem').filter({ hasText: habitName })).toHaveCount(1);
+  760 |   });
+  761 | 
+  762 |   /**
+  763 |    * TC43: Home - filters habits by category
+  764 |    */
+  765 |   test('TC43 - Home - filters habits by category', async ({ page }) => {
+  766 |     await page.goto('/');
+  767 |     const habitName1 = `Filter Habit 1 ${Date.now()}`;
+  768 |     const habitName2 = `Filter Habit 2 ${Date.now()}`;
+  769 |     await page.getByLabel('New habit name').fill(habitName1);
+  770 |     await page.getByLabel('Habit category').selectOption('Health');
+  771 |     await page.getByRole('button', { name: 'Add habit' }).click();
+  772 |     await expect(page.getByRole('listitem').filter({ hasText: habitName1 })).toBeVisible();
+  773 |     await page.getByLabel('New habit name').fill(habitName2);
+  774 |     await page.getByLabel('Habit category').selectOption('Work');
+  775 |     await page.getByRole('button', { name: 'Add habit' }).click();
+  776 |     await expect(page.getByRole('listitem').filter({ hasText: habitName2 })).toBeVisible();
+  777 |     await page.getByLabel('Filter by category').selectOption('Health');
+  778 |     await expect(page.getByRole('listitem').filter({ hasText: habitName1 })).toBeVisible();
+  779 |     await expect(page.getByRole('listitem').filter({ hasText: habitName2 })).toHaveCount(0);
+  780 |   });
+  781 | 
+  782 |   /**
+  783 |    * TC44: Home - searches for habits by name
+  784 |    */
+  785 |   test('TC44 - Home - searches for habits by name', async ({ page }) => {
+  786 |     await page.goto('/');
+  787 |     const habitName = `Search Habit ${Date.now()}`;
+  788 |     await page.getByLabel('New habit name').fill(habitName);
+  789 |     await page.getByRole('button', { name: 'Add habit' }).click();
+  790 |     await expect(page.getByRole('listitem').filter({ hasText: habitName })).toBeVisible();
+  791 |     const searchInput = page.getByLabel('Search habits by name');
+  792 |     await searchInput.fill(habitName.slice(0, 5));
+  793 |     await expect(page.getByRole('listitem').filter({ hasText: habitName })).toBeVisible();
+  794 |     await searchInput.fill('nomatchterm');
+  795 |     await expect(page.getByText(new RegExp(`No habits match "nomatchterm"\.`))).toBeVisible();
+  796 |   });
+  797 | 
+  798 |   /**
+  799 |    * TC45: Home - toggles show archived checkbox updates habits list
+  800 |    */
+  801 |   test('TC45 - Home - toggles show archived checkbox updates habits list', async ({ page }) => {
+  802 |     await page.goto('/');
+  803 |     const checkbox = page.getByRole('checkbox', { name: 'Show archived' });
+  804 |     await checkbox.check();
+  805 |     await expect(page.getByRole('list')).toBeVisible();
+  806 |     await checkbox.uncheck();
+  807 |     await expect(page.getByRole('list')).toBeVisible();
+  808 |   });
+  809 | 
+  810 |   /**
+  811 |    * TC46: HabitForm - create new habit successfully adds habit to list
+  812 |    */
+  813 |   test('TC46 - HabitForm - create new habit successfully adds habit to list', async ({ page }) => {
+  814 |     await page.goto('/');
+  815 |     const uniqueName = `Habit ${Date.now()}`;
+  816 |     await page.getByLabel('New habit name').fill(uniqueName);
+  817 |     await page.getByLabel('Habit category').selectOption('General');
+  818 |     await page.getByLabel('Times per week').selectOption('7');
+  819 |     await page.getByLabel('Notes (optional)').fill('');
+  820 |     await page.getByRole('button', { name: 'Add habit' }).click();
+  821 |     const habitItem = page.getByRole('listitem').filter({ hasText: uniqueName });
+  822 |     await expect(habitItem).toBeVisible();
+  823 |   });
+  824 | 
+  825 |   /**
+  826 |    * TC47: Home - search filters habit list by entered text
+  827 |    */
+  828 |   test('TC47 - Home - search filters habit list by entered text', async ({ page }) => {
+  829 |     await page.goto('/');
+  830 |     const uniqueName = `HabitSearch${Date.now()}`;
+  831 |     await page.getByLabel('New habit name').fill(uniqueName);
+```
