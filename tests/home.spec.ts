@@ -205,11 +205,14 @@ test.describe('Home', () => {
     const uniqueName = `SearchTest ${Date.now()}`;
     await page.getByRole('textbox', { name: 'New habit name' }).fill(uniqueName);
     await page.getByRole('button', { name: 'Add habit' }).click();
-    await expect(page.getByRole('listitem').filter({ hasText: uniqueName })).toBeVisible();
-    await page.getByRole('searchbox', { name: 'Search habits by name' }).fill(uniqueName);
-    await expect(page.getByRole('listitem').filter({ hasText: uniqueName })).toBeVisible();
-    await page.getByRole('searchbox', { name: 'Search habits by name' }).fill('nonexistentsearchterm' + Date.now());
-    await expect(page.getByText(`No habits match "nonexistentsearchterm`)).toBeVisible();
+    const habitItem = page.getByRole('listitem').filter({ hasText: uniqueName });
+    await expect(habitItem).toBeVisible();
+    const searchBox = page.getByRole('searchbox', { name: 'Search habits by name' });
+    await searchBox.fill(uniqueName);
+    await expect(habitItem).toBeVisible();
+    const noMatchTerm = 'nonexistentsearchterm' + Date.now();
+    await searchBox.fill(noMatchTerm);
+    await expect(page.getByText(`No habits match "${noMatchTerm}".`)).toBeVisible();
   });
 
   /**
@@ -700,7 +703,8 @@ test.describe('Home', () => {
     await page.getByRole('button', { name: 'Add habit' }).click();
     const habit2Card = page.getByRole('listitem').filter({ hasText: habit2 });
     await expect(habit2Card).toBeVisible();
-    await page.getByLabel('Search habits by name').fill('Alpha');
+    const searchInput = page.getByLabel('Search habits by name');
+    await searchInput.fill('Alpha');
     await expect(page.getByRole('listitem').filter({ hasText: habit1 })).toBeVisible();
     await expect(page.getByRole('listitem').filter({ hasText: habit2 })).toHaveCount(0);
   });
@@ -733,7 +737,9 @@ test.describe('Home', () => {
     await page.getByLabel('New habit name').fill(archName);
     await page.getByRole('button', { name: 'Add habit' }).click();
     const habitCard = page.getByRole('listitem').filter({ hasText: archName });
-    await habitCard.getByRole('button', { name: `Archive ${archName}` }).click();
+    await expect(habitCard).toBeVisible();
+    const archiveButton = habitCard.getByRole('button', { name: `Archive ${archName}` });
+    await archiveButton.click();
     await expect(page.getByRole('listitem').filter({ hasText: archName })).toHaveCount(0);
     const showArchivedCheckbox = page.getByLabel('Show archived');
     await showArchivedCheckbox.check();
