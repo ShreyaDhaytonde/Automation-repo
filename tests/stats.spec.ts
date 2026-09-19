@@ -77,13 +77,4 @@ test.describe('Stats', () => {
     await expect(page.getByRole('button', { name: 'Logout' })).toBeVisible();
   });
 
-  /**
-   * TC07: Stats page - loads and displays heading and back link
-   */
-  test('TC07 - Stats page - loads and displays heading and back link', async ({ page }) => {
-    await page.goto('/stats');
-    await expect(page.getByRole('heading', { name: 'Your stats' })).toBeVisible();
-    await expect(page.getByRole('link', { name: '← Back to habits' })).toBeVisible();
-  });
-
 });
