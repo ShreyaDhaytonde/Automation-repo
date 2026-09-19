@@ -1,0 +1,286 @@
+# Instructions
+
+- Following Playwright test failed.
+- Explain why, be concise, respect Playwright best practices.
+- Provide a snippet of code with the fix, if possible.
+
+# Test info
+
+- Name: home.spec.ts >> Home >> TC04 - HabitCard - marks habit done today disables button
+- Location: tests/home.spec.ts:61:7
+
+# Error details
+
+```
+Error: expect(locator).toHaveCount(expected) failed
+
+Locator:  getByRole('listitem').filter({ hasText: 'Daily completion habit 1789800873393' }).getByRole('button', { name: 'Done today', exact: true })
+Expected: 1
+Received: 0
+Timeout:  10000ms
+
+Call log:
+  - Expect "toHaveCount" getByRole('listitem').filter({ hasText: 'Daily completion habit 1789800873393' }).getByRole('button', { name: 'Done today', exact: true }) with timeout 10000ms
+  - waiting for getByRole('listitem').filter({ hasText: 'Daily completion habit 1789800873393' }).getByRole('button', { name: 'Done today', exact: true })
+    24 × locator resolved to 0 elements
+       - unexpected value "0"
+
+```
+
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - main [ref=e3]:
+    - generic [ref=e4]:
+      - generic [ref=e5]:
+        - heading "Habit Tracker" [level=1] [ref=e6]
+        - paragraph [ref=e7]: Build small daily habits, one day at a time.
+      - generic [ref=e8]:
+        - link "History" [ref=e9] [cursor=pointer]:
+          - /url: /history
+        - link "View stats" [ref=e10] [cursor=pointer]:
+          - /url: /stats
+        - link "Archive" [ref=e11] [cursor=pointer]:
+          - /url: /archive
+        - button "Switch to dark mode" [ref=e12]: 🌙 Dark
+        - button "Logout" [ref=e13]
+    - generic [ref=e15]:
+      - textbox "New habit name" [ref=e16]:
+        - /placeholder: e.g. Drink more water
+      - combobox "Habit category" [ref=e17]:
+        - option "General" [selected]
+        - option "Health"
+        - option "Work"
+        - option "Personal"
+        - option "Learning"
+      - combobox "Times per week" [ref=e18]:
+        - option "1x / week"
+        - option "2x / week"
+        - option "3x / week"
+        - option "4x / week"
+        - option "5x / week"
+        - option "6x / week"
+        - option "7x / week" [selected]
+      - textbox "Notes (optional)" [ref=e19]
+      - button "Add habit" [disabled] [ref=e20]
+    - generic [ref=e21]:
+      - generic [ref=e22]: Search habits by name
+      - searchbox "Search habits by name" [ref=e23]
+      - generic [ref=e24]: Sort by
+      - combobox "Sort habits by" [ref=e25]:
+        - option "Name (A-Z)" [selected]
+        - option "Streak (highest first)"
+        - option "Category"
+        - option "Weekly target (highest first)"
+    - generic [ref=e26]:
+      - generic [ref=e27]:
+        - generic [ref=e28]: Filter by category
+        - combobox "Filter by category" [ref=e29]:
+          - option "All" [selected]
+          - option "General"
+          - option "Health"
+          - option "Work"
+          - option "Personal"
+          - option "Learning"
+      - generic [ref=e30]:
+        - checkbox "Show archived" [ref=e31]
+        - text: Show archived
+      - generic [ref=e32]:
+        - button "Complete all for today (1)" [ref=e33]
+        - button "Export JSON" [ref=e34]
+        - button "Export CSV" [ref=e35]
+    - list [ref=e36]:
+      - listitem [ref=e37]:
+        - generic:
+          - generic:
+            - paragraph [ref=e38]: Daily completion habit 1789800873393
+            - generic [ref=e39]: General
+            - status "Daily completion habit 1789800873393 is at risk of missing its weekly goal" [ref=e40]: ⏰ Due today
+          - paragraph: Start your streak today!
+          - generic:
+            - progressbar "Daily completion habit 1789800873393 weekly progress"
+            - generic [ref=e41]: 0/7 this week
+        - generic [ref=e42]:
+          - button "Mark done" [ref=e43]
+          - button "Freeze Daily completion habit 1789800873393 for today" [ref=e44]: 🧊 Freeze
+          - button "Edit Daily completion habit 1789800873393" [ref=e45]: Edit
+          - button "Duplicate Daily completion habit 1789800873393" [ref=e46]: Duplicate
+          - button "Archive Daily completion habit 1789800873393" [ref=e47]: Archive
+          - button "Delete Daily completion habit 1789800873393" [ref=e48]: Remove
+  - alert [ref=e49]
+```
+
+# Test source
+
+```ts
+  1   | import { test, expect } from '@playwright/test';
+  2   | 
+  3   | test.describe('Home', () => {
+  4   |   test.setTimeout(60000);
+  5   | 
+  6   |   // ──────────────────────────────────────────────────────────────────────────
+  7   |   // SECTION 1: Home page load
+  8   |   // ──────────────────────────────────────────────────────────────────────────
+  9   | 
+  10  |   /**
+  11  |    * TC01: Home - page loads with unconditional elements visible
+  12  |    */
+  13  |   test('TC01 - Home - page loads with unconditional elements visible', async ({ page }) => {
+  14  |     await page.goto('/');
+  15  |     await expect(page.getByRole('heading', { name: 'Habit Tracker' })).toBeVisible();
+  16  |     await expect(page.getByLabel('Search habits by name')).toBeVisible();
+  17  |     await expect(page.getByRole('combobox', { name: 'Sort habits by' })).toBeVisible();
+  18  |     await expect(page.getByRole('link', { name: 'History' })).toBeVisible();
+  19  |     await expect(page.getByRole('link', { name: 'View stats' })).toBeVisible();
+  20  |     await expect(page.getByRole('link', { name: 'Archive' })).toBeVisible();
+  21  |     await expect(page.getByRole('button', { name: /Complete all for today/ })).toBeVisible();
+  22  |     await expect(page.getByRole('button', { name: 'Export JSON' })).toBeVisible();
+  23  |     await expect(page.getByRole('button', { name: 'Export CSV' })).toBeVisible();
+  24  |   });
+  25  | 
+  26  |   // ──────────────────────────────────────────────────────────────────────────
+  27  |   // SECTION 2: Home
+  28  |   // ──────────────────────────────────────────────────────────────────────────
+  29  | 
+  30  |   /**
+  31  |    * TC02: HabitForm - form validation disables Add habit button for empty name
+  32  |    */
+  33  |   test('TC02 - HabitForm - form validation disables Add habit button for empty name', async ({ page }) => {
+  34  |     await page.goto("/");
+  35  |     const input = page.getByRole("textbox", { name: "New habit name" });
+  36  |     const addButton = page.getByRole("button", { name: "Add habit" });
+  37  |     await input.fill("");
+  38  |     await expect(addButton).toBeDisabled();
+  39  |     await input.fill("   ");
+  40  |     await expect(addButton).toBeDisabled();
+  41  |   });
+  42  | 
+  43  |   /**
+  44  |    * TC03: Page heading and static elements render
+  45  |    */
+  46  |   test('TC03 - Page heading and static elements render', async ({ page }) => {
+  47  |     await page.goto("/");
+  48  |     await expect(page.getByRole("heading", { name: "Habit Tracker" })).toBeVisible();
+  49  |     await expect(page.getByText("Build small daily habits, one day at a time.")).toBeVisible();
+  50  |     await expect(page.getByLabel("Filter by category")).toBeVisible();
+  51  |     await expect(page.getByRole("combobox", { name: "Filter by category" })).toBeVisible();
+  52  |     await expect(page.getByRole("textbox", { name: "New habit name" })).toBeVisible();
+  53  |     await expect(page.getByRole("combobox", { name: "Habit category" })).toBeVisible();
+  54  |     await expect(page.getByRole("combobox", { name: "Times per week" })).toBeVisible();
+  55  |     await expect(page.getByRole("button", { name: "Add habit" })).toBeVisible();
+  56  |   });
+  57  | 
+  58  |   /**
+  59  |    * TC04: HabitCard - marks habit done today disables button
+  60  |    */
+  61  |   test('TC04 - HabitCard - marks habit done today disables button', async ({ page }) => {
+  62  |     await page.goto("/");
+  63  |     const habitName = `Daily completion habit ${Date.now()}`;
+  64  |     await page.getByRole("textbox", { name: "New habit name" }).fill(habitName);
+  65  |     await page.getByRole("button", { name: "Add habit" }).click();
+  66  |     const card = page.getByRole("listitem").filter({ hasText: habitName });
+  67  |     const doneButtons = card.getByRole("button", { name: "Done today", exact: true });
+> 68  |     await expect(doneButtons).toHaveCount(1);
+      |                               ^ Error: expect(locator).toHaveCount(expected) failed
+  69  |     await expect(doneButtons.first()).toBeDisabled();
+  70  |   });
+  71  | 
+  72  |   /**
+  73  |    * TC05: HabitCard inline edit form - opens and cancels edit mode
+  74  |    */
+  75  |   test('TC05 - HabitCard inline edit form - opens and cancels edit mode', async ({ page }) => {
+  76  |     await page.goto("/");
+  77  |     const habitName = `Editable habit ${Date.now()}`;
+  78  |     await page.getByRole("textbox", { name: "New habit name" }).fill(habitName);
+  79  |     await page.getByRole("button", { name: "Add habit" }).click();
+  80  |     const card = page.getByRole("listitem").filter({ hasText: habitName });
+  81  |     await card.getByRole("button", { name: `Edit ${habitName}` }).click();
+  82  |     const nameInput = page.getByLabel(`Edit name for ${habitName}`);
+  83  |     await expect(nameInput).toBeVisible();
+  84  |     await page.getByRole("button", { name: "Cancel", exact: true }).click();
+  85  |     await expect(card.getByRole("button", { name: `Edit ${habitName}` })).toBeVisible();
+  86  |   });
+  87  | 
+  88  |   /**
+  89  |    * TC06: Home page - initial render shows main heading, filter, show archived checkbox, export buttons disabled, and navigation link
+  90  |    */
+  91  |   test('TC06 - Home page - initial render shows main heading, filter, show archived checkbox, export buttons disabled, and navigation link', async ({ page }) => {
+  92  |     await page.goto('/');
+  93  |     await expect(page.getByRole('heading', { name: 'Habit Tracker' })).toBeVisible();
+  94  |     const categoryFilter = page.getByLabel('Filter by category');
+  95  |     await expect(categoryFilter).toBeVisible();
+  96  |     const allOption = categoryFilter.locator('option[value=""]');
+  97  |     await expect(allOption).toHaveCount(1);
+  98  |     await expect(categoryFilter).toHaveValue('');
+  99  |     const showArchivedCheckbox = page.getByLabel('Show archived');
+  100 |     await expect(showArchivedCheckbox).toBeVisible();
+  101 |     await expect(showArchivedCheckbox).not.toBeChecked();
+  102 |     const exportJsonButton = page.getByRole('button', { name: 'Export JSON' });
+  103 |     await expect(exportJsonButton).toBeVisible();
+  104 |     await expect(exportJsonButton).toBeDisabled();
+  105 |     const exportCsvButton = page.getByRole('button', { name: 'Export CSV' });
+  106 |     await expect(exportCsvButton).toBeVisible();
+  107 |     await expect(exportCsvButton).toBeDisabled();
+  108 |     const statsLink = page.getByRole('link', { name: 'View stats' });
+  109 |     await expect(statsLink).toBeVisible();
+  110 |   });
+  111 | 
+  112 |   /**
+  113 |    * TC07: HabitCard - archive and unarchive a habit via its archive toggle button
+  114 |    */
+  115 |   test('TC07 - HabitCard - archive and unarchive a habit via its archive toggle button', async ({ page }) => {
+  116 |     await page.goto('/');
+  117 |     const habitName = `Archive habit ${Date.now()}`;
+  118 |     await page.getByLabel('New habit name').fill(habitName);
+  119 |     await page.getByRole('button', { name: 'Add habit' }).click();
+  120 |     const habitCard = page.getByRole('listitem').filter({ hasText: habitName });
+  121 |     await expect(habitCard).toBeVisible();
+  122 |     const archiveButton = habitCard.getByRole('button', { name: `Archive ${habitName}` });
+  123 |     await archiveButton.click();
+  124 |     await expect(page.getByRole('listitem').filter({ hasText: habitName })).toHaveCount(0);
+  125 |     const showArchivedCheckbox = page.getByLabel('Show archived');
+  126 |     await showArchivedCheckbox.check();
+  127 |     const archivedHabitCard = page.getByRole('listitem').filter({ hasText: habitName });
+  128 |     await expect(archivedHabitCard).toBeVisible();
+  129 |     const unarchiveButton = archivedHabitCard.getByRole('button', { name: `Unarchive ${habitName}` });
+  130 |     await unarchiveButton.click();
+  131 |     await expect(page.getByRole('listitem').filter({ hasText: habitName })).toHaveCount(1);
+  132 |   });
+  133 | 
+  134 |   /**
+  135 |    * TC08: Home - toggling show archived checkbox updates displayed habits accordingly
+  136 |    */
+  137 |   test('TC08 - Home - toggling show archived checkbox updates displayed habits accordingly', async ({ page }) => {
+  138 |     await page.goto('/');
+  139 |     const showArchivedCheckbox = page.getByLabel('Show archived');
+  140 |     await showArchivedCheckbox.check();
+  141 |     await expect(showArchivedCheckbox).toBeChecked();
+  142 |     await showArchivedCheckbox.uncheck();
+  143 |     await expect(showArchivedCheckbox).not.toBeChecked();
+  144 |   });
+  145 | 
+  146 |   /**
+  147 |    * TC09: Home - Export JSON and Export CSV buttons are disabled when no habits exist and enabled after habits are created
+  148 |    */
+  149 |   test('TC09 - Home - Export JSON and Export CSV buttons are disabled when no habits exist and enabled after habits are created', async ({ page }) => {
+  150 |     await page.goto('/');
+  151 |     const exportJsonButton = page.getByRole('button', { name: 'Export JSON' });
+  152 |     const exportCsvButton = page.getByRole('button', { name: 'Export CSV' });
+  153 |     await expect(exportJsonButton).toBeDisabled();
+  154 |     await expect(exportCsvButton).toBeDisabled();
+  155 |     const habitName = `Habit for export ${Date.now()}`;
+  156 |     await page.getByLabel('New habit name').fill(habitName);
+  157 |     await page.getByRole('button', { name: 'Add habit' }).click();
+  158 |     await expect(exportJsonButton).toBeEnabled();
+  159 |     await expect(exportCsvButton).toBeEnabled();
+  160 |   });
+  161 | 
+  162 |   /**
+  163 |    * TC10: LogoutButton - logout button logs out and navigates to /login
+  164 |    */
+  165 |   test('TC10 - LogoutButton - logout button logs out and navigates to /login', async ({ page }) => {
+  166 |     await page.goto('/');
+  167 |     await page.getByRole('button', { name: 'Logout' }).click();
+  168 |     await expect(page).toHaveURL('/login');
+```
