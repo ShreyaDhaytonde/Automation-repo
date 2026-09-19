@@ -15,8 +15,8 @@ test.describe('Stats', () => {
     await expect(page.getByRole('heading', { name: 'Your stats' })).toBeVisible();
     await expect(page.getByText('How your habits are tracking overall.')).toBeVisible();
     await expect(page.getByRole('link', { name: 'History' })).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Theme toggle' })).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Log out' })).toBeVisible();
+    await expect(page.getByRole('button', { name: '🌙 Dark' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Logout' })).toBeVisible();
   });
 
   // ──────────────────────────────────────────────────────────────────────────
