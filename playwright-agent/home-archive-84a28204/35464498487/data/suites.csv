@@ -1,0 +1,2 @@
+"DESCRIPTION","DURATION IN MS","NAME","PARENT SUITE","START TIME","STATUS","STOP TIME","SUB SUITE","SUITE","TEST CLASS","TEST METHOD"
+"","547","TC01 - Stats page - renders with heading and controls","chromium","2026-09-19","passed","2026-09-19","Stats","stats.spec.ts","",""
