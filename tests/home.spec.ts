@@ -509,10 +509,12 @@ test.describe('Home', () => {
     await page.getByLabel('New habit name').fill(archName);
     await page.getByRole('button', { name: 'Add habit' }).click();
     const habitCard = page.getByRole('listitem').filter({ hasText: archName });
-    habitCard.getByRole('button', { name: `Archive ${archName}` }).click();
+    await habitCard.getByRole('button', { name: `Archive ${archName}` }).click();
     await expect(page.getByRole('listitem').filter({ hasText: archName })).toHaveCount(0);
-    await page.getByRole('checkbox', { name: 'Show archived' }).check();
-    await expect(page.getByRole('listitem').filter({ hasText: archName })).toBeVisible();
+    const showArchivedCheckbox = page.getByLabel('Show archived');
+    await showArchivedCheckbox.check();
+    const archivedHabitCard = page.getByRole('listitem').filter({ hasText: archName });
+    await expect(archivedHabitCard).toBeVisible();
   });
 
   /**
@@ -739,7 +741,6 @@ test.describe('Home', () => {
   test('TC39 - Home - toggles show archived checkbox updates habits list', async ({ page }) => {
     await page.goto('/');
     const checkbox = page.getByRole('checkbox', { name: 'Show archived' });
-    const initialCount = await page.getByRole('listitem').count();
     await checkbox.check();
     await expect(page.getByRole('list')).toBeVisible();
     await checkbox.uncheck();
