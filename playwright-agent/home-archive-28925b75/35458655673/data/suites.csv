@@ -1,0 +1,6 @@
+"DESCRIPTION","DURATION IN MS","NAME","PARENT SUITE","START TIME","STATUS","STOP TIME","SUB SUITE","SUITE","TEST CLASS","TEST METHOD"
+"","564","TC02 - Archive page - loads and renders unconditional elements","chromium","2026-09-19","passed","2026-09-19","Archive","archive.spec.ts","",""
+"","838","TC47 - Home - search filters habit list by entered text","chromium","2026-09-19","passed","2026-09-19","Home","home.spec.ts","",""
+"","1251","TC43 - Home - filters habits by category","chromium","2026-09-19","passed","2026-09-19","Home","home.spec.ts","",""
+"","11269","TC35 - Home page - search filters habit list results","chromium","2026-09-19","failed","2026-09-19","Home","home.spec.ts","",""
+"","1127","TC42 - HabitCard - toggles archive and unarchive of a habit","chromium","2026-09-19","passed","2026-09-19","Home","home.spec.ts","",""
