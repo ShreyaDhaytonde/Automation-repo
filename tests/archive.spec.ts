@@ -31,7 +31,8 @@ test.describe('Archive', () => {
     await page.goto("/archive");
     await expect(page.getByRole("heading", { name: "Archive" })).toBeVisible();
     await expect(page.getByRole("link", { name: "← Back to habits" })).toBeVisible();
-    await expect(page.getByRole("button", { name: /Edit / })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Logout", exact: true })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Switch to dark mode", exact: true })).toBeVisible();
   });
 
   /**
