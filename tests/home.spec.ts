@@ -13,7 +13,7 @@ test.describe('Home', () => {
   test('TC01 - Home - page loads with unconditional elements', async ({ page }) => {
     await page.goto('/');
     await expect(page.getByRole('heading', { name: 'Habit Tracker' })).toBeVisible();
-    await expect(page.getByRole('textbox', { name: 'Search habits by name' })).toBeVisible();
+    await expect(page.getByRole('searchbox', { name: 'Search habits by name' })).toBeVisible();
     await expect(page.getByRole('combobox', { name: 'Sort habits by' })).toBeVisible();
     await expect(page.getByRole('combobox', { name: 'Filter by category' })).toBeVisible();
     await expect(page.getByRole('checkbox', { name: 'Show archived' })).toBeVisible();
@@ -79,9 +79,9 @@ test.describe('Home', () => {
     await page.goto('/');
     const checkbox = page.getByRole('checkbox', { name: 'Show archived' });
     await checkbox.check();
-    await expect(page.getByRole('list')).toBeVisible();
+    await expect(page.locator('ul')).toBeVisible();
     await checkbox.uncheck();
-    await expect(page.getByRole('list')).toBeVisible();
+    await expect(page.locator('ul')).toBeVisible();
   });
 
 });
