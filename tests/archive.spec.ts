@@ -4,7 +4,7 @@ test.describe('Archive', () => {
   test.setTimeout(60000);
 
   // ──────────────────────────────────────────────────────────────────────────
-  // SECTION 1: Archive page rendering
+  // SECTION 1: Archive
   // ──────────────────────────────────────────────────────────────────────────
 
   /**
@@ -16,10 +16,6 @@ test.describe('Archive', () => {
     await expect(page.getByRole("link", { name: "← Back to habits" })).toBeVisible();
     await expect(page.getByRole("button", { name: /Edit / })).toBeVisible();
   });
-
-  // ──────────────────────────────────────────────────────────────────────────
-  // SECTION 2: HabitCard duplicate action
-  // ──────────────────────────────────────────────────────────────────────────
 
   /**
    * TC02: HabitCard in Archive - duplicates an archived habit, which does not appear in Archive but is presumably added to Home
@@ -35,10 +31,6 @@ test.describe('Archive', () => {
     await expect(page.locator(`text=${archivedHabitName} (copy)`)).toHaveCount(0);
     await expect(page.getByText("Could not duplicate that habit — try again.")).toHaveCount(0);
   });
-
-  // ──────────────────────────────────────────────────────────────────────────
-  // SECTION 3: Archive
-  // ──────────────────────────────────────────────────────────────────────────
 
   /**
    * TC03: Archive page - loads and shows static elements
@@ -95,9 +87,9 @@ test.describe('Archive', () => {
   });
 
   /**
-   * TC06: Archive page - can edit an archived habit\'s details
+   * TC06: Archive page - can edit an archived habit\\\'s details
    */
-  test('TC06 - Archive page - can edit an archived habit\\\'s details', async ({ page }) => {
+  test('TC06 - Archive page - can edit an archived habit\\\\\\\'s details', async ({ page }) => {
     await page.goto('/');
     const uniqueName = `Test Edit ${Date.now()}`;
     await page.getByLabel('New habit name').fill(uniqueName);
