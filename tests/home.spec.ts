@@ -621,12 +621,10 @@ test.describe('Home', () => {
     const habit2 = `Search Beta ${Date.now()}`;
     await page.getByLabel('New habit name').fill(habit1);
     await page.getByRole('button', { name: 'Add habit' }).click();
-    const habitItem1 = page.getByRole('listitem').filter({ hasText: habit1 });
-    await expect(habitItem1).toBeVisible();
+    await expect(page.getByRole('listitem').filter({ hasText: habit1 })).toBeVisible();
     await page.getByLabel('New habit name').fill(habit2);
     await page.getByRole('button', { name: 'Add habit' }).click();
-    const habitItem2 = page.getByRole('listitem').filter({ hasText: habit2 });
-    await expect(habitItem2).toBeVisible();
+    await expect(page.getByRole('listitem').filter({ hasText: habit2 })).toBeVisible();
     await page.getByLabel('Search habits by name').fill('Alpha');
     await expect(page.getByRole('listitem').filter({ hasText: habit1 })).toBeVisible();
     await expect(page.getByRole('listitem').filter({ hasText: habit2 })).toHaveCount(0);
