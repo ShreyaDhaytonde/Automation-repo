@@ -1,0 +1,3 @@
+"DESCRIPTION","DURATION IN MS","NAME","PARENT SUITE","START TIME","STATUS","STOP TIME","SUB SUITE","SUITE","TEST CLASS","TEST METHOD"
+"","742","TC01 - Home - page loads with unconditional elements","chromium","2026-09-19","passed","2026-09-19","Home","home.spec.ts","",""
+"","11078","TC05 - Home - toggles show archived checkbox updates habits list","chromium","2026-09-19","failed","2026-09-19","Home","home.spec.ts","",""
