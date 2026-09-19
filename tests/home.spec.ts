@@ -392,6 +392,7 @@ test.describe('Home', () => {
     await page.getByRole('button', { name: 'Add habit' }).click();
     await expect(page.getByRole('listitem').filter({ hasText: uniqueNameA })).toBeVisible();
     await page.getByRole('combobox', { name: 'Sort habits by' }).selectOption('name');
+    await expect(page.getByRole('listitem').filter({ hasText: uniqueNameA })).toBeVisible();
     const items = await page.getByRole('listitem').all();
     const texts = await Promise.all(items.map((item) => item.textContent()));
     const sorted = texts.every((text, i, arr) => !i || (text?.localeCompare(arr[i-1]!) ?? -1) >= 0);
