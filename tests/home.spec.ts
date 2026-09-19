@@ -17,7 +17,7 @@ test.describe('Home', () => {
     await expect(page.getByLabel("Habit category")).toBeVisible();
     await expect(page.getByLabel("Times per week")).toBeVisible();
     await expect(page.getByRole("button", { name: "Add habit" })).toBeVisible();
-    await expect(page.getByRole("textbox", { name: "Search habits by name" })).toBeVisible();
+    await expect(page.getByRole("searchbox", { name: "Search habits by name" })).toBeVisible();
     await expect(page.getByRole("combobox", { name: "Sort habits by" })).toBeVisible();
     await expect(page.getByLabel("Filter by category")).toBeVisible();
     await expect(page.getByRole("checkbox", { name: "Show archived" })).toBeVisible();
