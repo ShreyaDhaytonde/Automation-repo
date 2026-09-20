@@ -52,10 +52,10 @@ test.describe('Archive', () => {
    * TC03: HabitCard - duplicate habit button is visible and clickable on archived habits
    */
   test('TC03 - HabitCard - duplicate habit button is visible and clickable on archived habits', async ({ page }) => {
-    await page.goto("/archive");
-    const habitCard = page.getByRole("listitem").first();
-    await expect(habitCard.getByRole("button", { name: new RegExp("Duplicate ") })).toBeVisible();
-    await habitCard.getByRole("button", { name: new RegExp("Duplicate ") }).click();
+    await page.goto('/archive');
+    const archivedHabitCard = page.getByRole('listitem').filter({ hasText: ' (copy)' }).first();
+    await expect(archivedHabitCard.getByRole('button', { name: 'Duplicate', exact: true })).toBeVisible();
+    await archivedHabitCard.getByRole('button', { name: 'Duplicate', exact: true }).click();
   });
 
   /**
@@ -83,6 +83,7 @@ test.describe('Archive', () => {
     const habitCard = page.getByRole('listitem').filter({ hasText: uniqueName });
     await expect(habitCard).toBeVisible();
     await habitCard.getByRole('button', { name: `Archive` }).click();
+    await expect(habitCard).toHaveCount(0);
     await page.goto('/archive');
     const archivedHabitCard = page.getByRole('listitem').filter({ hasText: uniqueName });
     await expect(archivedHabitCard).toBeVisible();
