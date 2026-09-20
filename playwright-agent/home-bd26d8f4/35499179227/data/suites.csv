@@ -1,0 +1,4 @@
+"DESCRIPTION","DURATION IN MS","NAME","PARENT SUITE","START TIME","STATUS","STOP TIME","SUB SUITE","SUITE","TEST CLASS","TEST METHOD"
+"","577","TC03 - HabitCard - duplicate habit button is visible and clickable on archived habits","chromium","2026-09-20","failed","2026-09-20","Archive","archive.spec.ts","",""
+"","11815","TC05 - Archive page - can delete an archived habit","chromium","2026-09-20","failed","2026-09-20","Archive","archive.spec.ts","",""
+"","60366","TC04 - Home - shows clear filters button when filters are active","chromium","2026-09-20","broken","2026-09-20","Home","home.spec.ts","",""
