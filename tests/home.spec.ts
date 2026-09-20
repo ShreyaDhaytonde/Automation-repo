@@ -541,8 +541,7 @@ test.describe('Home', () => {
     const archiveButton = habitCard.getByRole('button', { name: `Archive ${habitName}` });
     await archiveButton.click();
     await expect(page.getByRole('listitem').filter({ hasText: habitName })).toHaveCount(0);
-    const showArchivedCheckbox = page.getByLabel('Show archived');
-    await showArchivedCheckbox.check();
+    await page.getByLabel('Show archived').check();
     const archivedHabitCard = page.getByRole('listitem').filter({ hasText: habitName });
     await expect(archivedHabitCard).toBeVisible();
     const unarchiveButton = archivedHabitCard.getByRole('button', { name: `Unarchive ${habitName}` });
