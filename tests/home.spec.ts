@@ -33,7 +33,7 @@ test.describe('Home', () => {
   test('TC02 - Home - clicking clear filters resets all filters to default', async ({ page }) => {
     await page.goto('/');
     await page.getByLabel('Search habits by name').fill('abc');
-    await page.getByLabel('Filter by category').selectOption('Other');
+    await page.getByLabel('Filter by category').selectOption('');
     await page.getByLabel('Show archived').check();
     await page.getByLabel('Sort habits by').selectOption('streak');
     await expect(page.getByRole('button', { name: 'Clear filters' })).toBeVisible();
@@ -54,11 +54,11 @@ test.describe('Home', () => {
   test('TC03 - Home - shows completion progress when habits exist', async ({ page }) => {
     await page.goto('/');
     const createName = `Test Habit Completion ${Date.now()}`;
-    await page.getByLabel('Name').fill(createName);
-    await page.getByLabel('Category').selectOption('Other');
+    await page.getByRole('textbox', { name: 'New habit name' }).fill(createName);
+    await page.getByLabel('Habit category').selectOption('Other');
     await page.getByLabel('Target per week').fill('3');
     await page.getByRole('button', { name: 'Add habit' }).click();
-    await expect(page.getByText(new RegExp(`\d+/\d+ done today`))).toBeVisible();
+    await expect(page.getByText(/\d+\/\d+ done today/)).toBeVisible();
   });
 
   // ──────────────────────────────────────────────────────────────────────────
@@ -73,9 +73,8 @@ test.describe('Home', () => {
     await page.getByLabel('Search habits by name').fill('some text');
     await expect(page.getByRole('button', { name: 'Clear filters' })).toBeVisible();
     await page.getByLabel('Search habits by name').fill('');
-    await page.getByLabel('Filter by category').selectOption('Other');
-    await expect(page.getByRole('button', { name: 'Clear filters' })).toBeVisible();
     await page.getByLabel('Filter by category').selectOption('');
+    await expect(page.getByRole('button', { name: 'Clear filters' })).toBeVisible();
     await page.getByLabel('Show archived').check();
     await expect(page.getByRole('button', { name: 'Clear filters' })).toBeVisible();
     await page.getByLabel('Show archived').uncheck();
@@ -158,7 +157,8 @@ test.describe('Home', () => {
     await expect(habitItem).toBeVisible();
     const markDoneButton = habitItem.getByRole('button', { name: 'Mark done' });
     await markDoneButton.click();
-    await expect(markDoneButton).toBeDisabled();
+    await expect(habitItem.getByRole('button', { name: 'Done today' })).toBeVisible();
+    await expect(habitItem.getByRole('button', { name: 'Done today' })).toBeDisabled();
   });
 
   /**
@@ -403,14 +403,15 @@ test.describe('Home', () => {
    * TC23: HabitCard - marks habit done today disables button
    */
   test('TC23 - HabitCard - marks habit done today disables button', async ({ page }) => {
-    await page.goto("/");
+    await page.goto('/');
     const habitName = `Daily completion habit ${Date.now()}`;
-    await page.getByRole("textbox", { name: "New habit name" }).fill(habitName);
-    await page.getByRole("button", { name: "Add habit" }).click();
-    const card = page.getByRole("listitem").filter({ hasText: habitName });
-    const doneButtons = card.getByRole("button", { name: "Done today", exact: true });
-    await expect(doneButtons).toHaveCount(1);
-    await expect(doneButtons.first()).toBeDisabled();
+    await page.getByRole('textbox', { name: 'New habit name' }).fill(habitName);
+    await page.getByRole('button', { name: 'Add habit' }).click();
+    const card = page.getByRole('listitem').filter({ hasText: habitName });
+    const markDoneButton = card.getByRole('button', { name: 'Mark done', exact: true });
+    await markDoneButton.click();
+    await expect(card.getByRole('button', { name: 'Done today', exact: true })).toBeVisible();
+    await expect(card.getByRole('button', { name: 'Done today', exact: true })).toBeDisabled();
   });
 
   /**
@@ -483,10 +484,10 @@ test.describe('Home', () => {
     await page.goto('/');
     const habitName = `Test habit ${Date.now()}`;
     const habitNotes = 'Test note for habit';
-    await page.getByLabel('New habit name').fill(habitName);
-    await page.getByLabel('Habit category').selectOption('Health');
-    await page.getByLabel('Times per week').selectOption('3');
-    await page.getByLabel('Notes (optional)').fill(habitNotes);
+    await page.getByRole('textbox', { name: 'New habit name' }).fill(habitName);
+    await page.getByRole('combobox', { name: 'Habit category' }).selectOption('Health');
+    await page.getByRole('combobox', { name: 'Times per week' }).selectOption('3');
+    await page.getByRole('textbox', { name: 'Notes (optional)' }).fill(habitNotes);
     await page.getByRole('button', { name: 'Add habit' }).click();
     const habitCard = page.getByRole('listitem').filter({ hasText: habitName });
     await expect(habitCard).toBeVisible();
@@ -505,10 +506,10 @@ test.describe('Home', () => {
     const originalName = `Edit habit ${Date.now()}`;
     const updatedName = `Updated habit ${Date.now()}`;
     const updatedNotes = 'Updated notes';
-    await page.getByLabel('New habit name').fill(originalName);
-    await page.getByLabel('Habit category').selectOption('Work');
-    await page.getByLabel('Times per week').selectOption('2');
-    await page.getByLabel('Notes (optional)').fill('Initial notes');
+    await page.getByRole('textbox', { name: 'New habit name' }).fill(originalName);
+    await page.getByRole('combobox', { name: 'Habit category' }).selectOption('Work');
+    await page.getByRole('combobox', { name: 'Times per week' }).selectOption('2');
+    await page.getByRole('textbox', { name: 'Notes (optional)' }).fill('Initial notes');
     await page.getByRole('button', { name: 'Add habit' }).click();
     const habitCard = page.getByRole('listitem').filter({ hasText: originalName });
     await expect(habitCard).toBeVisible();
@@ -756,13 +757,7 @@ test.describe('Home', () => {
     const bulkCompleteButton = page.getByRole('button', { name: /^Complete all for today/ });
     await bulkCompleteButton.click();
     await expect(bulkCompleteButton).toBeDisabled();
-    // The bulk action can settle before this assertion polls, so wait for the transient
-    // "Completing…" label to clear rather than pinning the exact instant it appears --
-    // `expect(...).toHaveText(a).or.toHaveText(b)` is not a real Playwright API (`.or` is
-    // a Locator method, not part of the assertion chain) and threw a TypeError here. Note
-    // the button legitimately stays disabled afterward once nothing is left pending -- it
-    // does not necessarily re-enable, so that isn't the right thing to assert either.
-    await expect(bulkCompleteButton).not.toHaveText(/Completing…/, { timeout: 15_000 });
+    await expect(bulkCompleteButton).not.toHaveText(/Completing…/, { timeout: 15000 });
   });
 
   /**
