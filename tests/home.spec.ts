@@ -73,7 +73,7 @@ test.describe('Home', () => {
     await page.getByLabel('Search habits by name').fill('some text');
     await expect(page.getByRole('button', { name: 'Clear filters' })).toBeVisible();
     await page.getByLabel('Search habits by name').fill('');
-    await page.getByLabel('Filter by category').selectOption('');
+    await page.getByLabel('Filter by category').selectOption('Exercise');
     await expect(page.getByRole('button', { name: 'Clear filters' })).toBeVisible();
     await page.getByLabel('Show archived').check();
     await expect(page.getByRole('button', { name: 'Clear filters' })).toBeVisible();
