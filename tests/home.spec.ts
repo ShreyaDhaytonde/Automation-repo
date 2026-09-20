@@ -294,6 +294,7 @@ test.describe('Home', () => {
     const editNameInput = page.getByLabel(`Edit name for ${habitName}`);
     const editCategorySelect = page.getByLabel(`Edit category for ${habitName}`);
     const editTimesSelect = page.getByLabel(`Edit times per week for ${habitName}`);
+    await expect(editNameInput).toBeVisible();
     await expect(editNameInput).toHaveValue(habitName);
     await expect(editCategorySelect).toHaveValue("General");
     await expect(editTimesSelect).toHaveValue("3");
