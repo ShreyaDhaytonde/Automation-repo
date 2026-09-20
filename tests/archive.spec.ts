@@ -71,11 +71,10 @@ test.describe('Archive', () => {
     const habitCard = page.getByRole('listitem').filter({ hasText: uniqueName });
     await expect(habitCard).toBeVisible();
     await habitCard.getByRole('button', { name: `Archive` }).click();
-    await page.goto('/archive');
+    await page.waitForURL('**/archive');
     const archivedHabitCard = page.getByRole('listitem').filter({ hasText: uniqueName });
     await expect(archivedHabitCard).toBeVisible();
     await archivedHabitCard.getByRole('button', { name: `Delete ${uniqueName}`, exact: true }).click();
-    await page.waitForTimeout(500);
     await expect(archivedHabitCard).toHaveCount(0);
   });
 
@@ -93,7 +92,7 @@ test.describe('Archive', () => {
     const habitCard = page.getByRole('listitem').filter({ hasText: uniqueName });
     await expect(habitCard).toBeVisible();
     await habitCard.getByRole('button', { name: `Archive ${uniqueName}`, exact: true }).click();
-    await page.goto('/archive');
+    await page.waitForURL('**/archive');
     const archivedHabitCard = page.getByRole('listitem').filter({ hasText: uniqueName });
     await expect(archivedHabitCard).toBeVisible();
     await archivedHabitCard.getByRole('button', { name: `Unarchive ${uniqueName}`, exact: true }).click();
