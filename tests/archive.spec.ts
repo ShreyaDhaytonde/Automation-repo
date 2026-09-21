@@ -26,22 +26,24 @@ test.describe('Archive', () => {
    * TC02: Archive HabitCard - duplicates an archived habit, creating an active copy on home page
    */
   test('TC02 - Archive HabitCard - duplicates an archived habit, creating an active copy on home page', async ({ page }) => {
+    await page.goto('/');
+    const uniqueName = `Test Duplicate Archived ${Date.now()}`;
+    await page.getByLabel('New habit name').fill(uniqueName);
+    await page.getByLabel('Habit category').selectOption({ index: 0 });
+    await page.getByLabel('Times per week').selectOption('7');
+    await page.getByRole('button', { name: 'Add habit' }).click();
+    const habitCard = page.getByRole('listitem').filter({ hasText: uniqueName });
+    await expect(habitCard).toBeVisible();
+    await habitCard.getByRole('button', { name: `Archive ${uniqueName}` }).click();
+    await expect(habitCard).toHaveCount(0);
     await page.goto('/archive');
-    // Wait for the archive list or empty message
-    const archiveListOrEmpty = page.getByRole('list').or(page.getByText('No archived habits — anything you archive from the home page shows up here.'));
-    await expect(archiveListOrEmpty).toBeVisible();
-    // If no archived habits, skip this duplication test
-    const archivedHabitItem = await page.locator('li').filter({ hasText: ' (copy)' }).first();
-    if (await archivedHabitItem.count() === 0) {
-      // Create a new habit on Home to archive it first before duplication test is possible.
-      // But since home page is out of scope here, skip duplication test with missing info
-      return;
-    }
-    // Click the duplicate button on first archived habit
-    const duplicateButton = archivedHabitItem.getByRole('button').filter({ hasText: /^Duplicate/ });
-    await duplicateButton.first().click();
-    // Assert no error message is visible
+    const archivedHabitCard = page.getByRole('listitem').filter({ hasText: uniqueName });
+    await expect(archivedHabitCard).toBeVisible();
+    await archivedHabitCard.getByRole('button', { name: `Duplicate ${uniqueName}` }).click();
     await expect(page.getByText('Could not duplicate that habit — try again.')).toHaveCount(0);
+    await page.goto('/');
+    const duplicatedHabitCard = page.getByRole('listitem').filter({ hasText: `${uniqueName} (copy)` });
+    await expect(duplicatedHabitCard).toBeVisible();
   });
 
   // ──────────────────────────────────────────────────────────────────────────
@@ -52,10 +54,20 @@ test.describe('Archive', () => {
    * TC03: HabitCard - duplicate habit button is visible and clickable on archived habits
    */
   test('TC03 - HabitCard - duplicate habit button is visible and clickable on archived habits', async ({ page }) => {
-    await page.goto("/archive");
-    const habitCard = page.getByRole("listitem").first();
-    await expect(habitCard.getByRole("button", { name: new RegExp("Duplicate ") })).toBeVisible();
-    await habitCard.getByRole("button", { name: new RegExp("Duplicate ") }).click();
+    await page.goto('/');
+    const uniqueName = `Test Archived Duplicate Button ${Date.now()}`;
+    await page.getByLabel('New habit name').fill(uniqueName);
+    await page.getByLabel('Habit category').selectOption({ index: 0 });
+    await page.getByLabel('Times per week').selectOption('7');
+    await page.getByRole('button', { name: 'Add habit' }).click();
+    const habitCard = page.getByRole('listitem').filter({ hasText: uniqueName });
+    await expect(habitCard).toBeVisible();
+    await habitCard.getByRole('button', { name: `Archive ${uniqueName}` }).click();
+    await expect(habitCard).toHaveCount(0);
+    await page.goto('/archive');
+    const archivedHabitCard = page.getByRole('listitem').filter({ hasText: uniqueName });
+    await expect(archivedHabitCard.getByRole('button', { name: `Duplicate ${uniqueName}` })).toBeVisible();
+    await archivedHabitCard.getByRole('button', { name: `Duplicate ${uniqueName}` }).click();
   });
 
   /**
@@ -83,11 +95,12 @@ test.describe('Archive', () => {
     const habitCard = page.getByRole('listitem').filter({ hasText: uniqueName });
     await expect(habitCard).toBeVisible();
     await habitCard.getByRole('button', { name: `Archive` }).click();
+    await expect(habitCard).toHaveCount(0);
     await page.goto('/archive');
     const archivedHabitCard = page.getByRole('listitem').filter({ hasText: uniqueName });
     await expect(archivedHabitCard).toBeVisible();
+    page.on('dialog', (dialog) => dialog.accept());
     await archivedHabitCard.getByRole('button', { name: `Delete ${uniqueName}`, exact: true }).click();
-    await page.waitForTimeout(500);
     await expect(archivedHabitCard).toHaveCount(0);
   });
 
@@ -105,6 +118,7 @@ test.describe('Archive', () => {
     const habitCard = page.getByRole('listitem').filter({ hasText: uniqueName });
     await expect(habitCard).toBeVisible();
     await habitCard.getByRole('button', { name: `Archive ${uniqueName}`, exact: true }).click();
+    await expect(habitCard).toHaveCount(0);
     await page.goto('/archive');
     const archivedHabitCard = page.getByRole('listitem').filter({ hasText: uniqueName });
     await expect(archivedHabitCard).toBeVisible();
@@ -113,9 +127,9 @@ test.describe('Archive', () => {
   });
 
   /**
-   * TC07: Archive page - can edit an archived habit\\\'s details
+   * TC07: Archive page - can edit an archived habit's details
    */
-  test('TC07 - Archive page - can edit an archived habit\\\\\\\'s details', async ({ page }) => {
+  test("TC07 - Archive page - can edit an archived habit's details", async ({ page }) => {
     await page.goto('/');
     const uniqueName = `Test Edit ${Date.now()}`;
     await page.getByLabel('New habit name').fill(uniqueName);
@@ -126,6 +140,7 @@ test.describe('Archive', () => {
     const habitCard = page.getByRole('listitem').filter({ hasText: uniqueName });
     await expect(habitCard).toBeVisible();
     await habitCard.getByRole('button', { name: `Archive` }).click();
+    await expect(habitCard).toHaveCount(0);
     await page.goto('/archive');
     const archivedHabitCard = page.getByRole('listitem').filter({ hasText: uniqueName });
     await expect(archivedHabitCard).toBeVisible();
