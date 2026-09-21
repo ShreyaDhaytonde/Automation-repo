@@ -1,0 +1,6 @@
+"DESCRIPTION","DURATION IN MS","NAME","PARENT SUITE","START TIME","STATUS","STOP TIME","SUB SUITE","SUITE","TEST CLASS","TEST METHOD"
+"","11487","TC32 - HabitForm - create a habit with notes successfully adds it to the list and enables export buttons","chromium","2026-09-21","failed","2026-09-21","Home","home.spec.ts","",""
+"","62617","TC03 - Home - complete a habit and verify completed state","chromium","2026-09-21","broken","2026-09-21","Home","home.spec.ts","",""
+"","60367","TC59 - Home - shows completion progress when habits exist","chromium","2026-09-21","broken","2026-09-21","Home","home.spec.ts","",""
+"","1331","TC46 - Home page - Complete all for today bulk action disables button and updates label","chromium","2026-09-21","passed","2026-09-21","Home","home.spec.ts","",""
+"","11867","TC33 - HabitCard - edit habit updates name, category, target per week, and notes","chromium","2026-09-21","failed","2026-09-21","Home","home.spec.ts","",""
