@@ -137,13 +137,25 @@ def _baseline_confidence(report: Report) -> tuple[int, str]:
     )
 
 
+def _escape_markdown_html(text: str) -> str:
+    # A raw Playwright error routinely echoes real rendered markup verbatim (its
+    # "Call log" reports the actual element it resolved, e.g.
+    # "<button class=...>Mark done</button>"). Embedded raw into markdown, that
+    # reads as the start of an HTML block to the renderer, which can swallow
+    # everything after it on that line as unrendered raw HTML -- a real
+    # incident where a failure reason mentioning an HTML element left that
+    # section's own links un-clickable. Escaping the two characters that
+    # trigger HTML-block recognition keeps the text readable and inert.
+    return text.replace("<", "&lt;").replace(">", "&gt;")
+
+
 def _deterministic_summary(report: Report) -> str:
     lines = [
         f"{report.passed}/{report.total} passed "
         f"({report.failed} failed, {report.flaky} flaky, {report.skipped} skipped).",
     ]
     for failure in report.failures[:5]:
-        lines.append(f"- {failure.title}: {failure.error[:120]}")
+        lines.append(f"- {_escape_markdown_html(failure.title)}: {_escape_markdown_html(failure.error[:120])}")
     return " ".join(lines)
 
 
