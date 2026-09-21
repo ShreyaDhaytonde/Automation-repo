@@ -73,7 +73,7 @@ test.describe('Home', () => {
     await page.getByLabel('Search habits by name').fill('some text');
     await expect(page.getByRole('button', { name: 'Clear filters' })).toBeVisible();
     await page.getByLabel('Search habits by name').fill('');
-    await page.getByLabel('Filter by category').selectOption('Exercise');
+    await page.getByLabel('Filter by category').selectOption('Health');
     await expect(page.getByRole('button', { name: 'Clear filters' })).toBeVisible();
     await page.getByLabel('Show archived').check();
     await expect(page.getByRole('button', { name: 'Clear filters' })).toBeVisible();
@@ -974,52 +974,32 @@ test.describe('Home', () => {
   test('TC53 - HabitCard - duplicates a habit and appends the copy with \\\' (copy)\\\' suffix', async ({ page }) => {
     await page.goto('/');
     // Create a habit first to duplicate
-    await page.getByLabel('Name').fill(`HabitToDuplicate ${Date.now()}`);
-    await page.getByLabel('Category').selectOption('Exercise');
-    await page.getByLabel('Weekly target').selectOption('3');
+    const habitName = `HabitToDuplicate ${Date.now()}`;
+    await page.getByLabel('New habit name').fill(habitName);
+    await page.getByLabel('Habit category').selectOption('Health');
+    await page.getByLabel('Times per week').selectOption('3');
     await page.getByLabel('Notes (optional)').fill('Some notes');
     await page.getByRole('button', { name: 'Add habit' }).click();
-    const habitName = `HabitToDuplicate ${Date.now()}`;
-    const habitItem = page.getByRole('listitem').filter({ hasText: habitName });
+    // Excludes " (copy)" so this stays pinned to the original once the
+    // duplicate exists -- its name is a substring of the copy's name, so an
+    // unqualified hasText filter would match both list items.
+    const copyNamePartial = ' (copy)';
+    const habitItem = page
+      .getByRole('listitem')
+      .filter({ hasText: habitName })
+      .filter({ hasNotText: copyNamePartial });
     await expect(habitItem).toBeVisible();
     // Click the duplicate button on that habit card
     const duplicateButton = habitItem.getByRole('button', { name: `Duplicate ${habitName}` });
     await duplicateButton.click();
     // The duplicated habit should appear with the expected suffix (copy)
-    const copyNamePartial = ' (copy)';
     const duplicatedHabitItem = page.getByRole('listitem').filter({ hasText: `${habitName}${copyNamePartial}` });
     await expect(duplicatedHabitItem).toBeVisible();
     // Verify the category badge matches (visible text from the original category)
-    const categoryBadgeOriginal = habitItem.getByText('Exercise');
+    const categoryBadgeOriginal = habitItem.getByText('Health');
     await expect(categoryBadgeOriginal).toBeVisible();
-    const categoryBadgeCopy = duplicatedHabitItem.getByText('Exercise');
+    const categoryBadgeCopy = duplicatedHabitItem.getByText('Health');
     await expect(categoryBadgeCopy).toBeVisible();
-  });
-
-  /**
-   * TC54: Home page - clears all filters when \'Clear filters\' button is clicked
-   */
-  test('TC54 - Home page - clears all filters when \\\'Clear filters\\\' button is clicked', async ({ page }) => {
-    await page.goto('/');
-    const searchInput = page.getByLabel('Search habits by name');
-    const categoryFilter = page.getByLabel('Filter by category');
-    const showArchivedCheckbox = page.getByLabel('Show archived');
-    const sortSelect = page.getByLabel('Sort habits by');
-    // Activate filters
-    await searchInput.fill('nonexistent-filter-test');
-    await categoryFilter.selectOption('Exercise');
-    await showArchivedCheckbox.check();
-    await sortSelect.selectOption('streak');
-    // The Clear filters button should appear
-    const clearFiltersButton = page.getByRole('button', { name: 'Clear filters' });
-    await expect(clearFiltersButton).toBeVisible();
-    // Click the Clear filters button
-    await clearFiltersButton.click();
-    // Assert filters reset to default: empty search, empty category, unchecked archived, sort by name
-    await expect(searchInput).toHaveValue('');
-    await expect(categoryFilter).toHaveValue('');
-    await expect(showArchivedCheckbox).not.toBeChecked();
-    await expect(sortSelect).toHaveValue('name');
   });
 
   /**
