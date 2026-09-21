@@ -48,9 +48,9 @@ test.describe('Home', () => {
   test('TC03 - Home - complete a habit and verify completed state', async ({ page }) => {
     await page.goto('/');
     const habitName = `CompleteTest-${Date.now()}`;
-    await page.getByRole('textbox', { name: 'New habit name' }).fill(habitName);
-    await page.getByRole('combobox', { name: 'Habit category' }).selectOption('General');
-    await page.getByRole('combobox', { name: 'Times per week' }).selectOption('3');
+    await page.getByLabel('New habit name').fill(habitName);
+    await page.getByLabel('Habit category').selectOption('General');
+    await page.getByLabel('Times per week').selectOption('3');
     await page.getByRole('button', { name: 'Add habit' }).click();
     const habitItem = page.getByRole('listitem').filter({ hasText: habitName });
     await expect(habitItem).toBeVisible();
@@ -576,10 +576,10 @@ test.describe('Home', () => {
     await page.goto('/');
     const habitName = `Test habit ${Date.now()}`;
     const habitNotes = 'Test note for habit';
-    await page.getByRole('textbox', { name: 'New habit name' }).fill(habitName);
-    await page.getByRole('combobox', { name: 'Habit category' }).selectOption('Health');
-    await page.getByRole('combobox', { name: 'Times per week' }).selectOption('3');
-    await page.getByRole('textbox', { name: 'Notes (optional)' }).fill(habitNotes);
+    await page.getByLabel('New habit name').fill(habitName);
+    await page.getByLabel('Habit category').selectOption('Health');
+    await page.getByLabel('Times per week').selectOption('3');
+    await page.getByLabel('Notes (optional)').fill(habitNotes);
     await page.getByRole('button', { name: 'Add habit' }).click();
     const habitCard = page.getByRole('listitem').filter({ hasText: habitName });
     await expect(habitCard).toBeVisible();
@@ -598,10 +598,10 @@ test.describe('Home', () => {
     const originalName = `Edit habit ${Date.now()}`;
     const updatedName = `Updated habit ${Date.now()}`;
     const updatedNotes = 'Updated notes';
-    await page.getByRole('textbox', { name: 'New habit name' }).fill(originalName);
-    await page.getByRole('combobox', { name: 'Habit category' }).selectOption('Work');
-    await page.getByRole('combobox', { name: 'Times per week' }).selectOption('2');
-    await page.getByRole('textbox', { name: 'Notes (optional)' }).fill('Initial notes');
+    await page.getByLabel('New habit name').fill(originalName);
+    await page.getByLabel('Habit category').selectOption('Work');
+    await page.getByLabel('Times per week').selectOption('2');
+    await page.getByLabel('Notes (optional)').fill('Initial notes');
     await page.getByRole('button', { name: 'Add habit' }).click();
     const habitCard = page.getByRole('listitem').filter({ hasText: originalName });
     await expect(habitCard).toBeVisible();
@@ -837,17 +837,17 @@ test.describe('Home', () => {
     await page.goto('/');
     const habit1 = `BulkComplete 1 ${Date.now()}`;
     const habit2 = `BulkComplete 2 ${Date.now()}`;
-    await page.getByRole('textbox', { name: 'New habit name' }).fill(habit1);
-    await page.getByRole('combobox', { name: 'Habit category' }).selectOption('General');
+    await page.getByLabel('New habit name').fill(habit1);
+    await page.getByLabel('Habit category').selectOption('General');
     await page.getByRole('button', { name: 'Add habit' }).click();
     await expect(page.getByRole('listitem').filter({ hasText: habit1 })).toBeVisible();
-    await page.getByRole('textbox', { name: 'New habit name' }).fill(habit2);
-    await page.getByRole('combobox', { name: 'Habit category' }).selectOption('General');
+    await page.getByLabel('New habit name').fill(habit2);
+    await page.getByLabel('Habit category').selectOption('General');
     await page.getByRole('button', { name: 'Add habit' }).click();
     await expect(page.getByRole('listitem').filter({ hasText: habit2 })).toBeVisible();
     const bulkCompleteButton = page.getByRole('button', { name: /^Complete all for today/ });
+    await expect(bulkCompleteButton).toBeEnabled();
     await bulkCompleteButton.click();
-    await expect(bulkCompleteButton).toBeDisabled();
     await expect(bulkCompleteButton).not.toHaveText(/Completing…/, { timeout: 15000 });
   });
 
@@ -1083,9 +1083,9 @@ test.describe('Home', () => {
   test('TC59 - Home - shows completion progress when habits exist', async ({ page }) => {
     await page.goto('/');
     const createName = `Test Habit Completion ${Date.now()}`;
-    await page.getByRole('textbox', { name: 'New habit name' }).fill(createName);
-    await page.getByRole('combobox', { name: 'Habit category' }).selectOption('General');
-    await page.getByRole('textbox', { name: 'Target per week' }).fill('3');
+    await page.getByLabel('New habit name').fill(createName);
+    await page.getByLabel('Habit category').selectOption('General');
+    await page.getByLabel('Target per week').fill('3');
     await page.getByRole('button', { name: 'Add habit' }).click();
     await expect(page.getByText(/\d+\/\d+ done today/)).toBeVisible();
   });
