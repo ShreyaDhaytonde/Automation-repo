@@ -74,11 +74,22 @@ on:
         type: string
       grep:
         description: >-
-          Playwright --grep regex. Empty runs the whole suite (every initial
-          validation run). Non-empty scopes this run to only the matching
-          tests -- used by the agent's repair loop so rechecking whether a
-          fix landed costs that test's own time, not a full re-run of every
-          already-passing test in the suite.
+          Playwright --grep regex. Empty runs every test in spec_files (or
+          the whole suite, if spec_files is also empty). Non-empty scopes
+          this run to only the matching tests -- used by the agent's repair
+          loop so rechecking whether a fix landed costs that test's own
+          time, not a full re-run of every already-passing test.
+        required: false
+        default: ""
+        type: string
+      spec_files:
+        description: >-
+          Space-separated spec file path(s), relative to this repo's root
+          (e.g. "tests/home.spec.ts tests/archive.spec.ts"), to run instead
+          of the whole suite -- the files this agent run actually generated
+          or updated. Empty runs every spec file in the project (the
+          pre-existing default, kept for any workflow_dispatch triggered by
+          hand without this input).
         required: false
         default: ""
         type: string
@@ -409,6 +420,7 @@ jobs:
           PLAYWRIGHT_JSON_OUTPUT_NAME: ../results/results.json
           CI: "true"
           TEST_GREP: ${{ inputs.grep }}
+          TEST_SPEC_FILES: ${{ inputs.spec_files }}
           TEST_USERNAME: ${{ secrets.TEST_USERNAME }}
           TEST_PASSWORD: ${{ secrets.TEST_PASSWORD }}
         run: |
@@ -424,6 +436,15 @@ jobs:
           args=(--reporter=line,json,allure-playwright --output=../results/artifacts --max-failures=100)
           if [ -n "$TEST_GREP" ]; then
             args+=(--grep "$TEST_GREP")
+          fi
+          # Positional file args scope which spec files Playwright even loads --
+          # this run's own generated/updated files, not every spec ever committed
+          # to this repo. Read with `read -ra` (word-splitting on spaces) rather
+          # than passed as one string, since Playwright expects each file as its
+          # own argv entry.
+          if [ -n "$TEST_SPEC_FILES" ]; then
+            read -ra spec_file_args <<< "$TEST_SPEC_FILES"
+            args+=("${spec_file_args[@]}")
           fi
           npx playwright test "${args[@]}"
 
