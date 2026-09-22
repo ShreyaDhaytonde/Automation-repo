@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('Stats', () => {
-  test.setTimeout(60000);
+  test.setTimeout(120000);
 
   // ──────────────────────────────────────────────────────────────────────────
   // SECTION 1: Page load

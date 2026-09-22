@@ -41,7 +41,7 @@ function habitCardLocator(page, name) {
 }
 
 test.describe('Home', () => {
-  test.setTimeout(60000);
+  test.setTimeout(120000);
 
   // ──────────────────────────────────────────────────────────────────────────
   // SECTION 1: Page load

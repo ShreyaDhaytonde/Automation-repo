@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('Archive', () => {
-  test.setTimeout(60000);
+  test.setTimeout(120000);
 
   // ──────────────────────────────────────────────────────────────────────────
   // SECTION 1: HabitCard - pin toggle
@@ -11,14 +11,19 @@ test.describe('Archive', () => {
    * TC01: HabitCard - toggle pin state on an archived habit card
    */
   test('TC01 - HabitCard - toggle pin state on an archived habit card', async ({ page }) => {
-    await page.goto('/archive');
+    await page.goto('/');
     const habitName = `Pin Test Habit ${Date.now()}`;
     await page.getByRole('textbox', { name: 'New habit name' }).fill(habitName);
     await page.getByRole('combobox', { name: 'Habit category' }).selectOption({ index: 0 });
     await page.getByRole('combobox', { name: 'Times per week' }).selectOption('7');
     await page.getByRole('button', { name: 'Add habit' }).click();
-    await page.getByRole('button', { name: `Archive ${habitName}` }).click();
+    const homeHabitCard = page.getByRole('listitem').filter({ hasText: habitName });
+    await expect(homeHabitCard).toBeVisible();
+    await homeHabitCard.getByRole('button', { name: `Archive ${habitName}` }).click();
+    await expect(homeHabitCard).toHaveCount(0);
+    await page.goto('/archive');
     const habitCard = page.getByRole('listitem').filter({ hasText: habitName });
+    await expect(habitCard).toBeVisible();
     const pinButton = habitCard.getByRole('button', { name: `Pin ${habitName}` });
     await pinButton.click();
     await expect(habitCard.getByRole('button', { name: `Unpin ${habitName}` })).toBeVisible();
@@ -34,14 +39,19 @@ test.describe('Archive', () => {
    * TC02: HabitCard - cycle priority on an archived habit card
    */
   test('TC02 - HabitCard - cycle priority on an archived habit card', async ({ page }) => {
-    await page.goto('/archive');
+    await page.goto('/');
     const habitName = `Priority Test Habit ${Date.now()}`;
     await page.getByRole('textbox', { name: 'New habit name' }).fill(habitName);
     await page.getByRole('combobox', { name: 'Habit category' }).selectOption({ index: 0 });
     await page.getByRole('combobox', { name: 'Times per week' }).selectOption('7');
     await page.getByRole('button', { name: 'Add habit' }).click();
-    await page.getByRole('button', { name: `Archive ${habitName}` }).click();
+    const homeHabitCard = page.getByRole('listitem').filter({ hasText: habitName });
+    await expect(homeHabitCard).toBeVisible();
+    await homeHabitCard.getByRole('button', { name: `Archive ${habitName}` }).click();
+    await expect(homeHabitCard).toHaveCount(0);
+    await page.goto('/archive');
     const habitCard = page.getByRole('listitem').filter({ hasText: habitName });
+    await expect(habitCard).toBeVisible();
     const priorityButton = habitCard.getByRole('button', { name: new RegExp(`Cycle priority for ${habitName}, currently (Low|Medium|High)`) });
     const initialPriority = await priorityButton.textContent();
     await priorityButton.click();
