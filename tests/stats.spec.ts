@@ -12,8 +12,8 @@ test.describe('StatsSummary', () => {
    */
   test('TC01 - StatsSummary - renders all stat cards with correct labels and values', async ({ page }) => {
     await page.goto('/stats');
-    await expect(page.getByRole('heading', { name: 'Weekly completion' })).toBeVisible();
-    await expect(page.getByRole('heading', { name: 'Habits by category' })).toBeVisible();
+    await expect(page.locator('h2', { hasText: 'Weekly completion' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Habits by category', exact: true })).toBeVisible();
     await expect(page.getByText('Habits')).toBeVisible();
     await expect(page.getByText('Done today')).toBeVisible();
     await expect(page.getByText('Active streaks')).toBeVisible();
@@ -43,9 +43,9 @@ test.describe('StatsSummary', () => {
    */
   test('TC03 - StatsSummary - displays weekly completion progress bar with correct percentage', async ({ page }) => {
     await page.goto('/stats');
-    const weeklyCompletionText = await page.locator('div > div > span.text-zinc-500').filter({ hasText: /%/ }).textContent();
-    await expect(weeklyCompletionText).toMatch(/\d+%/);
-    const progressBar = page.locator('div > div > div > div.h-full.rounded-full.bg-emerald-500');
+    const weeklyCompletionLocator = page.locator('div.flex.items-center.justify-between.text-sm').locator('span.text-zinc-500');
+    await expect(weeklyCompletionLocator).toHaveText(/\d+%/);
+    const progressBar = page.locator('div > div > div.h-full.rounded-full.bg-emerald-500');
     await expect(progressBar).toBeVisible();
   });
 
