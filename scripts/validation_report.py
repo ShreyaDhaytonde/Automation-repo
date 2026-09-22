@@ -161,10 +161,13 @@ def _deterministic_summary(report: Report) -> str:
 
 def _missing_results_report(exc: Exception) -> tuple[Report, str]:
     reason = (
-        f"no test results ({type(exc).__name__}: {exc}) -- Playwright likely never ran "
+        f"no test results ({type(exc).__name__}: {exc}) -- either Playwright never ran "
         "because an earlier infrastructure step failed (backend health check, frontend "
-        "health check, or dependency install); see this run's earlier steps for the "
-        "actual cause"
+        "health check, or dependency install), or it was still running when the validate "
+        "job's timeout-minutes cancelled it (the JSON reporter only writes results.json on "
+        "process exit, so a run killed mid-suite leaves nothing behind even after passing "
+        "most of its tests); see this run's earlier steps and its own duration vs. the "
+        "job's timeout-minutes for the actual cause"
     )
     report = Report(confidence=0, verdict="fail")
     report.failures.append(
@@ -173,10 +176,13 @@ def _missing_results_report(exc: Exception) -> tuple[Report, str]:
             title="Playwright never ran",
             error=str(exc),
             # Unlike every other failure, this one is not a guess: no
-            # results.json existing at all can only mean an earlier
-            # infrastructure step failed before Playwright ever started, so
-            # it is safe to say infra_bug here without waiting on the
-            # agent's classification pass.
+            # results.json existing at all can only mean Playwright either
+            # never started or never finished -- either way this is an
+            # infrastructure/CI-configuration condition, not a test-authoring
+            # one, so it is safe to say infra_bug here without waiting on the
+            # agent's classification pass. (A real incident: the validate job
+            # was cancelled by its own timeout-minutes at 20m18s with 71/73
+            # tests already passed -- not a health-check failure at all.)
             category="infra_bug",
             reason=reason,
         )
@@ -184,10 +190,11 @@ def _missing_results_report(exc: Exception) -> tuple[Report, str]:
     report.counts_by_category["infra_bug"] = 1
     report.summary = (
         "No Playwright test results were produced this run. This is a server/environment "
-        "problem, not a test-authoring issue: an earlier step (most likely the backend or "
-        "frontend health check) failed and every step after it was skipped, so the "
-        "generated test suite was never given the chance to run. Check the backend and "
-        "frontend startup logs for this run to find the actual server bug."
+        "problem, not a test-authoring issue: either an earlier step (most likely the "
+        "backend or frontend health check) failed and every step after it was skipped, or "
+        "the validate job ran out of its allotted timeout-minutes mid-suite and was "
+        "cancelled before it could write results. Check the backend/frontend startup logs "
+        "and this run's actual duration against its timeout-minutes to find the real cause."
     )
     return report, reason
 
