@@ -1,5 +1,41 @@
 import { test, expect } from '@playwright/test';
 
+function newHabitNameField(page) {
+  return page.getByRole('textbox', { name: 'New habit name' });
+}
+
+function newHabitCategoryField(page) {
+  return page.getByRole('combobox', { name: 'Habit category' });
+}
+
+function newHabitTargetField(page) {
+  return page.getByRole('combobox', { name: 'Times per week' });
+}
+
+function newHabitNotesField(page) {
+  return page.getByRole('textbox', { name: 'Notes (optional)' });
+}
+
+function submitAddHabitButton(page) {
+  return page.getByRole('button', { name: 'Add habit' });
+}
+
+function habitSearchBox(page) {
+  return page.getByRole('searchbox', { name: 'Search habits by name' });
+}
+
+function categoryFilterControl(page) {
+  return page.getByRole('combobox', { name: 'Filter by category' });
+}
+
+function sortByControl(page) {
+  return page.getByRole('combobox', { name: 'Sort habits by' });
+}
+
+function showArchivedToggle(page) {
+  return page.getByLabel('Show archived');
+}
+
 test.describe('Home', () => {
   test.setTimeout(60000);
 
