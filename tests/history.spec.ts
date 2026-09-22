@@ -15,8 +15,7 @@ test.describe('History', () => {
     await expect(page.getByRole('heading', { name: 'History' })).toBeVisible();
     await expect(page.getByText('Last 28 days for each habit.')).toBeVisible();
     await expect(page.getByRole('link', { name: '← Back to habits' })).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Toggle theme' })).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Log out' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Logout' })).toBeVisible();
     await expect(page.getByText('Done')).toBeVisible();
     await expect(page.getByText('Frozen')).toBeVisible();
     await expect(page.getByText('Missed')).toBeVisible();
