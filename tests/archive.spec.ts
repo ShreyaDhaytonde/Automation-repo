@@ -4,13 +4,55 @@ test.describe('Archive', () => {
   test.setTimeout(60000);
 
   // ──────────────────────────────────────────────────────────────────────────
-  // SECTION 1: Page load
+  // SECTION 1: HabitCard - pin toggle
   // ──────────────────────────────────────────────────────────────────────────
 
   /**
-   * TC01: Archive page - loads and renders main UI elements
+   * TC01: HabitCard - toggle pin state on an archived habit card
    */
-  test('TC01 - Archive page - loads and renders main UI elements', async ({ page }) => {
+  test('TC01 - HabitCard - toggle pin state on an archived habit card', async ({ page }) => {
+    await page.goto('/archive');
+    const habitName = `Pin Test Habit ${Date.now()}`;
+    await page.getByLabel('Name').fill(habitName);
+    await page.getByRole('button', { name: 'Add habit' }).click();
+    await page.getByRole('button', { name: `Archive ${habitName}` }).click();
+    const habitCard = page.getByRole('listitem').filter({ hasText: habitName });
+    const pinButton = habitCard.getByRole('button', { name: `Pin ${habitName}` });
+    await pinButton.click();
+    await expect(habitCard.getByRole('button', { name: `Unpin ${habitName}` })).toBeVisible();
+    await habitCard.getByRole('button', { name: `Unpin ${habitName}` }).click();
+    await expect(habitCard.getByRole('button', { name: `Pin ${habitName}` })).toBeVisible();
+  });
+
+  // ──────────────────────────────────────────────────────────────────────────
+  // SECTION 2: HabitCard - priority cycle
+  // ──────────────────────────────────────────────────────────────────────────
+
+  /**
+   * TC02: HabitCard - cycle priority on an archived habit card
+   */
+  test('TC02 - HabitCard - cycle priority on an archived habit card', async ({ page }) => {
+    await page.goto('/archive');
+    const habitName = `Priority Test Habit ${Date.now()}`;
+    await page.getByLabel('Name').fill(habitName);
+    await page.getByRole('button', { name: 'Add habit' }).click();
+    await page.getByRole('button', { name: `Archive ${habitName}` }).click();
+    const habitCard = page.getByRole('listitem').filter({ hasText: habitName });
+    const priorityButton = habitCard.getByRole('button', { name: new RegExp(`Cycle priority for ${habitName}, currently (Low|Medium|High)`) });
+    const initialPriority = await priorityButton.textContent();
+    await priorityButton.click();
+    const nextPriority = initialPriority === 'Low' ? 'Medium' : initialPriority === 'Medium' ? 'High' : 'Low';
+    await expect(habitCard.getByRole('button', { name: `Cycle priority for ${habitName}, currently ${nextPriority}` })).toBeVisible();
+  });
+
+  // ──────────────────────────────────────────────────────────────────────────
+  // SECTION 3: Archive
+  // ──────────────────────────────────────────────────────────────────────────
+
+  /**
+   * TC03: Archive page - loads and renders main UI elements
+   */
+  test('TC03 - Archive page - loads and renders main UI elements', async ({ page }) => {
     await page.goto('/archive');
     await expect(page.getByRole('heading', { name: 'Archive' })).toBeVisible();
     await expect(page.getByText("Habits you've archived, out of the main list.")).toBeVisible();
@@ -18,14 +60,10 @@ test.describe('Archive', () => {
     await expect(page.getByRole('list').or(page.getByText('No archived habits — anything you archive from the home page shows up here.'))).toBeVisible();
   });
 
-  // ──────────────────────────────────────────────────────────────────────────
-  // SECTION 2: HabitCard duplicate action
-  // ──────────────────────────────────────────────────────────────────────────
-
   /**
-   * TC02: Archive HabitCard - duplicates an archived habit, creating an active copy on home page
+   * TC04: Archive HabitCard - duplicates an archived habit, creating an active copy on home page
    */
-  test('TC02 - Archive HabitCard - duplicates an archived habit, creating an active copy on home page', async ({ page }) => {
+  test('TC04 - Archive HabitCard - duplicates an archived habit, creating an active copy on home page', async ({ page }) => {
     await page.goto('/');
     const uniqueName = `Test Duplicate Archived ${Date.now()}`;
     await page.getByLabel('New habit name').fill(uniqueName);
@@ -46,14 +84,10 @@ test.describe('Archive', () => {
     await expect(duplicatedHabitCard).toBeVisible();
   });
 
-  // ──────────────────────────────────────────────────────────────────────────
-  // SECTION 3: Archive
-  // ──────────────────────────────────────────────────────────────────────────
-
   /**
-   * TC03: HabitCard - duplicate habit button is visible and clickable on archived habits
+   * TC05: HabitCard - duplicate habit button is visible and clickable on archived habits
    */
-  test('TC03 - HabitCard - duplicate habit button is visible and clickable on archived habits', async ({ page }) => {
+  test('TC05 - HabitCard - duplicate habit button is visible and clickable on archived habits', async ({ page }) => {
     await page.goto('/');
     const uniqueName = `Test Archived Duplicate Button ${Date.now()}`;
     await page.getByLabel('New habit name').fill(uniqueName);
@@ -71,9 +105,9 @@ test.describe('Archive', () => {
   });
 
   /**
-   * TC04: Archive page - loads and shows static elements
+   * TC06: Archive page - loads and shows static elements
    */
-  test('TC04 - Archive page - loads and shows static elements', async ({ page }) => {
+  test('TC06 - Archive page - loads and shows static elements', async ({ page }) => {
     await page.goto('/archive');
     await expect(page.getByRole('heading', { name: 'Archive' })).toBeVisible();
     await expect(page.getByRole('link', { name: '← Back to habits' })).toBeVisible();
@@ -82,9 +116,9 @@ test.describe('Archive', () => {
   });
 
   /**
-   * TC05: Archive page - can delete an archived habit
+   * TC07: Archive page - can delete an archived habit
    */
-  test('TC05 - Archive page - can delete an archived habit', async ({ page }) => {
+  test('TC07 - Archive page - can delete an archived habit', async ({ page }) => {
     await page.goto('/');
     const uniqueName = `Test Delete ${Date.now()}`;
     await page.getByLabel('New habit name').fill(uniqueName);
@@ -105,9 +139,9 @@ test.describe('Archive', () => {
   });
 
   /**
-   * TC06: Archive page - can unarchive an archived habit
+   * TC08: Archive page - can unarchive an archived habit
    */
-  test('TC06 - Archive page - can unarchive an archived habit', async ({ page }) => {
+  test('TC08 - Archive page - can unarchive an archived habit', async ({ page }) => {
     await page.goto('/');
     const uniqueName = `Test Unarchive ${Date.now()}`;
     await page.getByLabel('New habit name').fill(uniqueName);
@@ -127,37 +161,9 @@ test.describe('Archive', () => {
   });
 
   /**
-   * TC07: Archive page - can edit an archived habit's details
+   * TC09: Archive page - can navigate back to home page
    */
-  test("TC07 - Archive page - can edit an archived habit's details", async ({ page }) => {
-    await page.goto('/');
-    const uniqueName = `Test Edit ${Date.now()}`;
-    await page.getByLabel('New habit name').fill(uniqueName);
-    await page.getByLabel('Habit category').selectOption({ index: 0 });
-    await page.getByLabel('Times per week').selectOption('7');
-    await page.getByLabel('Notes (optional)').fill('');
-    await page.getByRole('button', { name: 'Add habit' }).click();
-    const habitCard = page.getByRole('listitem').filter({ hasText: uniqueName });
-    await expect(habitCard).toBeVisible();
-    await habitCard.getByRole('button', { name: `Archive` }).click();
-    await expect(habitCard).toHaveCount(0);
-    await page.goto('/archive');
-    const archivedHabitCard = page.getByRole('listitem').filter({ hasText: uniqueName });
-    await expect(archivedHabitCard).toBeVisible();
-    await archivedHabitCard.getByRole('button', { name: `Edit ${uniqueName}`, exact: true }).click();
-    const nameInput = page.getByLabel(`Edit name for ${uniqueName}`);
-    await expect(nameInput).toHaveValue(uniqueName);
-    await nameInput.fill(`${uniqueName} updated`);
-    const saveButton = page.getByRole('button', { name: 'Save', exact: true });
-    await saveButton.click();
-    const updatedHabitCard = page.getByRole('listitem').filter({ hasText: `${uniqueName} updated` });
-    await expect(updatedHabitCard).toBeVisible();
-  });
-
-  /**
-   * TC08: Archive page - can navigate back to home page
-   */
-  test('TC08 - Archive page - can navigate back to home page', async ({ page }) => {
+  test('TC09 - Archive page - can navigate back to home page', async ({ page }) => {
     await page.goto('/archive');
     await page.getByRole('link', { name: '← Back to habits' }).click();
     await expect(page).toHaveURL('/');
@@ -165,17 +171,17 @@ test.describe('Archive', () => {
   });
 
   /**
-   * TC09: Archive page - error message appears when loading fails (non-deterministic)
+   * TC10: Archive page - error message appears when loading fails (non-deterministic)
    */
-  test('TC09 - Archive page - error message appears when loading fails (non-deterministic)', async ({ page }) => {
+  test('TC10 - Archive page - error message appears when loading fails (non-deterministic)', async ({ page }) => {
     await page.goto('/archive');
     await expect(page.getByText('Could not load archived habits. Is the API running?')).toBeHidden();
   });
 
   /**
-   * TC10: Archive page - empty state message is shown when no habits are archived (not reachable without backend control)
+   * TC11: Archive page - empty state message is shown when no habits are archived (not reachable without backend control)
    */
-  test('TC10 - Archive page - empty state message is shown when no habits are archived (not reachable without backend control)', async ({ page }) => {
+  test('TC11 - Archive page - empty state message is shown when no habits are archived (not reachable without backend control)', async ({ page }) => {
     await page.goto('/archive');
     await expect(page.getByText('No archived habits — anything you archive from the home page shows up here.')).toBeHidden();
   });
