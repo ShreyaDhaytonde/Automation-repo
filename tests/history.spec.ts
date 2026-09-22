@@ -18,8 +18,7 @@ test.describe('History', () => {
     await expect(page.getByText('Done')).toBeVisible();
     await expect(page.getByText('Frozen')).toBeVisible();
     await expect(page.getByText('Missed')).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Toggle theme' })).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Log out' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Logout' })).toBeVisible();
   });
 
   // ──────────────────────────────────────────────────────────────────────────
