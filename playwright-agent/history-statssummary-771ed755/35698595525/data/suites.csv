@@ -1,0 +1,4 @@
+"DESCRIPTION","DURATION IN MS","NAME","PARENT SUITE","START TIME","STATUS","STOP TIME","SUB SUITE","SUITE","TEST CLASS","TEST METHOD"
+"","11087","TC03 - StatsSummary - displays weekly completion progress bar with correct percentage","chromium","2026-09-22","failed","2026-09-22","StatsSummary","stats.spec.ts","",""
+"","11103","TC01 - StatsSummary - renders all stat cards with correct labels and values","chromium","2026-09-22","failed","2026-09-22","StatsSummary","stats.spec.ts","",""
+"","1136","TC01 - History - page loads and renders unconditional elements","chromium","2026-09-22","passed","2026-09-22","History","history.spec.ts","",""
