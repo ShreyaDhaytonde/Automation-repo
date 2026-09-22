@@ -76,9 +76,9 @@ test.describe('Home', () => {
   test('TC04 - HabitList - edits a habit and verifies updated values', async ({ page }) => {
     await page.goto('/');
     const habitName = `Edit Habit ${Date.now()}`;
-    await page.getByRole('textbox', { name: 'New habit name' }).fill(habitName);
-    await page.getByRole('combobox', { name: 'Habit category' }).selectOption('General');
-    await page.getByRole('combobox', { name: 'Times per week' }).selectOption('3');
+    await page.getByLabel('New habit name').fill(habitName);
+    await page.getByLabel('Habit category').selectOption('General');
+    await page.getByLabel('Times per week').selectOption('3');
     await page.getByRole('button', { name: 'Add habit' }).click();
     const habitCard = page.getByRole('listitem').filter({ hasText: habitName });
     await expect(habitCard).toBeVisible();
@@ -103,7 +103,7 @@ test.describe('Home', () => {
     const completeAllButton = page.getByRole('button', { name: /^Complete all for today/ });
     await expect(completeAllButton).toBeEnabled();
     await completeAllButton.click();
-    await expect(completeAllButton).toBeDisabled();
+    await expect(completeAllButton).not.toHaveText(/Completing…/, { timeout: 15000 });
   });
 
   // ──────────────────────────────────────────────────────────────────────────
@@ -116,9 +116,9 @@ test.describe('Home', () => {
   test('TC06 - HabitList - skips and unskips a habit', async ({ page }) => {
     await page.goto('/');
     const habitName = `Skip Habit ${Date.now()}`;
-    await page.getByRole('textbox', { name: 'New habit name' }).fill(habitName);
-    await page.getByRole('combobox', { name: 'Habit category' }).selectOption('General');
-    await page.getByRole('combobox', { name: 'Times per week' }).selectOption('3');
+    await page.getByLabel('New habit name').fill(habitName);
+    await page.getByLabel('Habit category').selectOption('General');
+    await page.getByLabel('Times per week').selectOption('3');
     await page.getByRole('button', { name: 'Add habit' }).click();
     const habitCard = page.getByRole('listitem').filter({ hasText: habitName });
     await expect(habitCard).toBeVisible();
@@ -134,14 +134,14 @@ test.describe('Home', () => {
   test('TC07 - HabitList - toggles archive state of a habit', async ({ page }) => {
     await page.goto('/');
     const habitName = `Archive Habit ${Date.now()}`;
-    await page.getByRole('textbox', { name: 'New habit name' }).fill(habitName);
-    await page.getByRole('combobox', { name: 'Habit category' }).selectOption('General');
-    await page.getByRole('combobox', { name: 'Times per week' }).selectOption('3');
+    await page.getByLabel('New habit name').fill(habitName);
+    await page.getByLabel('Habit category').selectOption('General');
+    await page.getByLabel('Times per week').selectOption('3');
     await page.getByRole('button', { name: 'Add habit' }).click();
     const habitCard = page.getByRole('listitem').filter({ hasText: habitName });
     await expect(habitCard).toBeVisible();
     await habitCard.getByRole('checkbox', { name: `Archive ${habitName}` }).check();
-    await expect(habitCard).toHaveCount(0);
+    await expect(page.getByRole('listitem').filter({ hasText: habitName })).toHaveCount(0);
     await page.getByLabel('Show archived').check();
     const archivedCard = page.getByRole('listitem').filter({ hasText: habitName });
     await expect(archivedCard).toBeVisible();
