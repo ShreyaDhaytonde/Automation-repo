@@ -259,7 +259,12 @@ jobs:
   validate:
     needs: prepare
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    # A shared spec file accumulates test cases across every page/run that
+    # touches it (each new page's tests are appended, not run in isolation),
+    # so its total runtime keeps growing over the project's life. 20m was cut
+    # too close: a real run was killed mid-suite at 20m18s, 2 tests from the
+    # end, leaving no results.json for the report job to read at all.
+    timeout-minutes: 35
     outputs:
       tests_outcome: ${{ steps.tests.outcome }}
 
