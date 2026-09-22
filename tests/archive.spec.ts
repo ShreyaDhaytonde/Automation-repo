@@ -13,9 +13,9 @@ test.describe('Archive', () => {
   test('TC01 - HabitCard - toggle pin state on an archived habit card', async ({ page }) => {
     await page.goto('/archive');
     const habitName = `Pin Test Habit ${Date.now()}`;
-    await page.getByLabel('New habit name').fill(habitName);
-    await page.getByLabel('Habit category').selectOption({ index: 0 });
-    await page.getByLabel('Times per week').selectOption('7');
+    await page.getByRole('textbox', { name: 'New habit name' }).fill(habitName);
+    await page.getByRole('combobox', { name: 'Habit category' }).selectOption({ index: 0 });
+    await page.getByRole('combobox', { name: 'Times per week' }).selectOption('7');
     await page.getByRole('button', { name: 'Add habit' }).click();
     await page.getByRole('button', { name: `Archive ${habitName}` }).click();
     const habitCard = page.getByRole('listitem').filter({ hasText: habitName });
@@ -36,9 +36,9 @@ test.describe('Archive', () => {
   test('TC02 - HabitCard - cycle priority on an archived habit card', async ({ page }) => {
     await page.goto('/archive');
     const habitName = `Priority Test Habit ${Date.now()}`;
-    await page.getByLabel('New habit name').fill(habitName);
-    await page.getByLabel('Habit category').selectOption({ index: 0 });
-    await page.getByLabel('Times per week').selectOption('7');
+    await page.getByRole('textbox', { name: 'New habit name' }).fill(habitName);
+    await page.getByRole('combobox', { name: 'Habit category' }).selectOption({ index: 0 });
+    await page.getByRole('combobox', { name: 'Times per week' }).selectOption('7');
     await page.getByRole('button', { name: 'Add habit' }).click();
     await page.getByRole('button', { name: `Archive ${habitName}` }).click();
     const habitCard = page.getByRole('listitem').filter({ hasText: habitName });
