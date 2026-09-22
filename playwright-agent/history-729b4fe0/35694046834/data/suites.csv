@@ -1,0 +1,7 @@
+"DESCRIPTION","DURATION IN MS","NAME","PARENT SUITE","START TIME","STATUS","STOP TIME","SUB SUITE","SUITE","TEST CLASS","TEST METHOD"
+"","616","TC06 - History page - navigate back to habits","chromium","2026-09-22","passed","2026-09-22","History","history.spec.ts","",""
+"","749","TC02 - History page - shows loading state while fetching habits","chromium","2026-09-22","passed","2026-09-22","History","history.spec.ts","",""
+"","439","TC03 - History page - shows tracked habit count when habits exist","chromium","2026-09-22","passed","2026-09-22","History","history.spec.ts","",""
+"","11121","TC01 - History page - loads and displays unconditional elements","chromium","2026-09-22","failed","2026-09-22","History","history.spec.ts","",""
+"","440","TC04 - History page - shows error message if habits fail to load","chromium","2026-09-22","passed","2026-09-22","History","history.spec.ts","",""
+"","421","TC05 - History page - shows empty state when no habits exist","chromium","2026-09-22","passed","2026-09-22","History","history.spec.ts","",""
