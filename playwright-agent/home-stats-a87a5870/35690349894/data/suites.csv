@@ -1,0 +1,2 @@
+"DESCRIPTION","DURATION IN MS","NAME","PARENT SUITE","START TIME","STATUS","STOP TIME","SUB SUITE","SUITE","TEST CLASS","TEST METHOD"
+"","1266","TC51 - HabitCard - toggles archive and unarchive of a habit","chromium","2026-09-22","passed","2026-09-22","Home","home.spec.ts","",""
