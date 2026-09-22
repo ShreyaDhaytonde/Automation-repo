@@ -39,13 +39,13 @@ test.describe('Home', () => {
     const habitName = `Test Habit ${Date.now()}`;
     await page.getByRole('textbox', { name: 'New habit name' }).fill(habitName);
     await page.getByLabel('Habit category').selectOption('General');
-    await page.getByLabel('Times per week').selectOption('3x / week');
+    await page.getByLabel('Times per week').selectOption('3');
     await page.getByLabel('Notes (optional)').fill('Test notes');
     await page.getByRole('button', { name: 'Add habit' }).click();
     const habitCard = page.getByRole('listitem').filter({ hasText: habitName });
     await expect(habitCard).toBeVisible();
     await expect(habitCard.getByText('General')).toBeVisible();
-    await expect(habitCard.getByText('3x / week')).toBeVisible();
+    await expect(habitCard.getByText('3')).toBeVisible();
   });
 
   // ──────────────────────────────────────────────────────────────────────────
@@ -82,9 +82,11 @@ test.describe('Home', () => {
     await page.getByRole('button', { name: 'Add habit' }).click();
     const habitCard = page.getByRole('listitem').filter({ hasText: habitName });
     const priorityButton = habitCard.getByRole('button', { name: new RegExp(`Cycle priority for ${habitName}, currently (Low|Medium|High)`) });
-    const initialPriority = await priorityButton.textContent();
+    const initialPriority = await priorityButton.getAttribute('aria-label');
+    const match = initialPriority?.match(/currently (Low|Medium|High)/);
+    const currentPriority = match ? match[1] : null;
+    const nextPriority = currentPriority === 'Low' ? 'Medium' : currentPriority === 'Medium' ? 'High' : 'Low';
     await priorityButton.click();
-    const nextPriority = initialPriority === 'Low' ? 'Medium' : initialPriority === 'Medium' ? 'High' : 'Low';
     await expect(habitCard.getByRole('button', { name: `Cycle priority for ${habitName}, currently ${nextPriority}` })).toBeVisible();
   });
 
@@ -220,9 +222,10 @@ test.describe('Home', () => {
     await page.getByRole('textbox', { name: 'New habit name' }).fill(uniqueName);
     await page.getByRole('button', { name: 'Add habit' }).click();
     await expect(page.getByRole('listitem').filter({ hasText: uniqueName })).toBeVisible();
-    await page.getByRole('textbox', { name: 'Search habits by name' }).fill(uniqueName);
+    const searchBox = page.getByLabel('Search habits by name');
+    await searchBox.fill(uniqueName);
     await expect(page.getByRole('listitem').filter({ hasText: uniqueName })).toBeVisible();
-    await page.getByRole('textbox', { name: 'Search habits by name' }).fill('nonexistentsearchterm' + Date.now());
+    await searchBox.fill('nonexistentsearchterm' + Date.now());
     await expect(page.getByText(new RegExp(`No habits match "nonexistentsearchterm`))).toBeVisible();
   });
 
