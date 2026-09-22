@@ -36,6 +36,10 @@ function showArchivedToggle(page) {
   return page.getByLabel('Show archived');
 }
 
+function habitCardLocator(page, name) {
+  return page.getByRole('listitem').filter({ hasText: name });
+}
+
 test.describe('Home', () => {
   test.setTimeout(60000);
 
