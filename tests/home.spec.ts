@@ -37,7 +37,7 @@ test.describe('Home', () => {
   test('TC02 - HabitForm - create a new habit successfully', async ({ page }) => {
     await page.goto('/');
     const habitName = `Test Habit ${Date.now()}`;
-    await page.getByRole('textbox', { name: 'New habit name' }).fill(habitName);
+    await page.getByLabel('New habit name').fill(habitName);
     await page.getByLabel('Habit category').selectOption('General');
     await page.getByLabel('Times per week').selectOption('3');
     await page.getByLabel('Notes (optional)').fill('Test notes');
@@ -45,7 +45,7 @@ test.describe('Home', () => {
     const habitCard = page.getByRole('listitem').filter({ hasText: habitName });
     await expect(habitCard).toBeVisible();
     await expect(habitCard.getByText('General')).toBeVisible();
-    await expect(habitCard.getByText('3')).toBeVisible();
+    await expect(habitCard.getByText('0/3 this week')).toBeVisible();
   });
 
   // ──────────────────────────────────────────────────────────────────────────
