@@ -928,8 +928,9 @@ test.describe('Home', () => {
     await expect(habitCard).toBeVisible();
     const markDoneButton = habitCard.getByRole('button', { name: 'Mark done' });
     await markDoneButton.click();
-    await expect(habitCard.getByRole('button', { name: 'Done today' })).toBeVisible();
-    await expect(habitCard.getByRole('button', { name: 'Done today' })).toBeDisabled();
+    const doneTodayButton = habitCard.getByRole('button', { name: 'Done today' });
+    await expect(doneTodayButton).toBeVisible();
+    await expect(doneTodayButton).toBeDisabled();
   });
 
   /**
