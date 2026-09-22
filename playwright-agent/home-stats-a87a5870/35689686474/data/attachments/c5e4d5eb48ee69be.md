@@ -1,0 +1,331 @@
+# Instructions
+
+- Following Playwright test failed.
+- Explain why, be concise, respect Playwright best practices.
+- Provide a snippet of code with the fix, if possible.
+
+# Test info
+
+- Name: home.spec.ts >> Home >> TC06 - HabitList - skips and unskips a habit
+- Location: tests/home.spec.ts:116:7
+
+# Error details
+
+```
+Test timeout of 60000ms exceeded.
+```
+
+```
+Error: locator.click: Test timeout of 60000ms exceeded.
+Call log:
+  - waiting for getByRole('listitem').filter({ hasText: 'Skip Habit 1790054169424' }).getByRole('button', { name: 'Skip Skip Habit 1790054169424' })
+
+```
+
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - main [ref=e3]:
+    - generic [ref=e4]:
+      - generic [ref=e5]:
+        - heading "Habit Tracker" [level=1] [ref=e6]
+        - paragraph [ref=e7]: Build small daily habits, one day at a time.
+        - paragraph [ref=e8]: Tuesday, September 22
+        - paragraph [ref=e9]: 0/2 done today
+      - generic [ref=e10]:
+        - link "History" [ref=e11] [cursor=pointer]:
+          - /url: /history
+        - link "View stats" [ref=e12] [cursor=pointer]:
+          - /url: /stats
+        - link "Archive" [ref=e13] [cursor=pointer]:
+          - /url: /archive
+        - button "Switch to dark mode" [ref=e14]: 🌙 Dark
+        - button "Logout" [ref=e15]
+    - generic [ref=e17]:
+      - textbox "New habit name" [ref=e18]:
+        - /placeholder: e.g. Drink more water
+      - combobox "Habit category" [ref=e19]:
+        - option "General" [selected]
+        - option "Health"
+        - option "Work"
+        - option "Personal"
+        - option "Learning"
+      - combobox "Times per week" [ref=e20]:
+        - option "1x / week"
+        - option "2x / week"
+        - option "3x / week" [selected]
+        - option "4x / week"
+        - option "5x / week"
+        - option "6x / week"
+        - option "7x / week"
+      - textbox "Notes (optional)" [ref=e21]
+      - button "Add habit" [disabled] [ref=e22]
+    - generic [ref=e23]:
+      - generic [ref=e24]: Search habits by name
+      - searchbox "Search habits by name" [ref=e25]
+      - generic [ref=e26]: Sort by
+      - combobox "Sort habits by" [ref=e27]:
+        - option "Name (A-Z)" [selected]
+        - option "Streak (highest first)"
+        - option "Category"
+        - option "Weekly target (highest first)"
+    - generic [ref=e28]:
+      - generic [ref=e29]:
+        - generic [ref=e30]: Filter by category
+        - combobox "Filter by category" [ref=e31]:
+          - option "All" [selected]
+          - option "General"
+          - option "Health"
+          - option "Work"
+          - option "Personal"
+          - option "Learning"
+      - generic [ref=e32]:
+        - checkbox "Show archived" [ref=e33]
+        - text: Show archived
+      - generic [ref=e34]:
+        - button "Complete all for today (2)" [ref=e35]
+        - button "Export JSON" [ref=e36]
+        - button "Export CSV" [ref=e37]
+    - list [ref=e38]:
+      - listitem [ref=e39]:
+        - generic:
+          - generic:
+            - paragraph [ref=e40]: Skip Habit 1790054105742
+            - generic [ref=e41]: General
+          - paragraph: Start your streak today!
+          - generic:
+            - progressbar "Skip Habit 1790054105742 weekly progress"
+            - generic [ref=e42]: 0/3 this week
+        - generic [ref=e43]:
+          - button "Mark done" [ref=e44]
+          - button "Freeze Skip Habit 1790054105742 for today" [ref=e45]: 🧊 Freeze
+          - button "Edit Skip Habit 1790054105742" [ref=e46]: Edit
+          - button "Duplicate Skip Habit 1790054105742" [ref=e47]: Duplicate
+          - button "Archive Skip Habit 1790054105742" [ref=e48]: Archive
+          - button "Delete Skip Habit 1790054105742" [ref=e49]: Remove
+      - listitem [ref=e50]:
+        - generic:
+          - generic:
+            - paragraph [ref=e51]: Skip Habit 1790054169424
+            - generic [ref=e52]: General
+          - paragraph: Start your streak today!
+          - generic:
+            - progressbar "Skip Habit 1790054169424 weekly progress"
+            - generic [ref=e53]: 0/3 this week
+        - generic [ref=e54]:
+          - button "Mark done" [ref=e55]
+          - button "Freeze Skip Habit 1790054169424 for today" [ref=e56]: 🧊 Freeze
+          - button "Edit Skip Habit 1790054169424" [ref=e57]: Edit
+          - button "Duplicate Skip Habit 1790054169424" [ref=e58]: Duplicate
+          - button "Archive Skip Habit 1790054169424" [ref=e59]: Archive
+          - button "Delete Skip Habit 1790054169424" [ref=e60]: Remove
+  - alert [ref=e61]
+```
+
+# Test source
+
+```ts
+  25  |   // ──────────────────────────────────────────────────────────────────────────
+  26  |   // SECTION 2: Home page load
+  27  |   // ──────────────────────────────────────────────────────────────────────────
+  28  | 
+  29  |   /**
+  30  |    * TC02: Home - page loads and displays header and controls
+  31  |    */
+  32  |   test('TC02 - Home - page loads and displays header and controls', async ({ page }) => {
+  33  |     await page.goto('/');
+  34  |     await expect(page.getByRole('heading', { name: 'Habit Tracker' })).toBeVisible();
+  35  |     await expect(page.getByText('Build small daily habits, one day at a time.')).toBeVisible();
+  36  |     await expect(page.locator('p.text-xs.text-zinc-400').first()).toBeVisible();
+  37  |     await expect(page.getByRole('link', { name: 'History' })).toBeVisible();
+  38  |     await expect(page.getByRole('link', { name: 'View stats' })).toBeVisible();
+  39  |     await expect(page.getByRole('link', { name: 'Archive' })).toBeVisible();
+  40  |     await expect(page.getByRole('button', { name: 'Switch to dark mode' })).toBeVisible();
+  41  |     await expect(page.getByRole('button', { name: 'Logout' })).toBeVisible();
+  42  |     await expect(page.getByRole('searchbox', { name: 'Search habits by name' })).toBeVisible();
+  43  |     await expect(page.getByRole('combobox', { name: 'Sort habits by' })).toBeVisible();
+  44  |     await expect(page.getByRole('combobox', { name: 'Filter by category' })).toBeVisible();
+  45  |     await expect(page.getByLabel('Show archived')).toBeVisible();
+  46  |     await expect(page.getByRole('button', { name: /^Complete all for today/ })).toBeVisible();
+  47  |     await expect(page.getByRole('button', { name: 'Export JSON' })).toBeVisible();
+  48  |     await expect(page.getByRole('button', { name: 'Export CSV' })).toBeVisible();
+  49  |     await expect(page.getByRole('button', { name: 'Add habit' })).toBeVisible();
+  50  |   });
+  51  | 
+  52  |   // ──────────────────────────────────────────────────────────────────────────
+  53  |   // SECTION 3: Habit list actions
+  54  |   // ──────────────────────────────────────────────────────────────────────────
+  55  | 
+  56  |   /**
+  57  |    * TC03: HabitList - deletes a habit after confirmation
+  58  |    */
+  59  |   test('TC03 - HabitList - deletes a habit after confirmation', async ({ page }) => {
+  60  |     await page.goto('/');
+  61  |     const habitName = `Delete Habit ${Date.now()}`;
+  62  |     await page.getByRole('textbox', { name: 'New habit name' }).fill(habitName);
+  63  |     await page.getByRole('combobox', { name: 'Habit category' }).selectOption('General');
+  64  |     await page.getByRole('combobox', { name: 'Times per week' }).selectOption('3');
+  65  |     await page.getByRole('button', { name: 'Add habit' }).click();
+  66  |     const habitCard = page.getByRole('listitem').filter({ hasText: habitName });
+  67  |     await expect(habitCard).toBeVisible();
+  68  |     page.on('dialog', (dialog) => dialog.accept());
+  69  |     await habitCard.getByRole('button', { name: `Delete ${habitName}` }).click();
+  70  |     await expect(habitCard).toHaveCount(0);
+  71  |   });
+  72  | 
+  73  |   /**
+  74  |    * TC04: HabitList - edits a habit and verifies updated values
+  75  |    */
+  76  |   test('TC04 - HabitList - edits a habit and verifies updated values', async ({ page }) => {
+  77  |     await page.goto('/');
+  78  |     const habitName = `Edit Habit ${Date.now()}`;
+  79  |     await page.getByLabel('New habit name').fill(habitName);
+  80  |     await page.getByLabel('Habit category').selectOption('General');
+  81  |     await page.getByLabel('Times per week').selectOption('3');
+  82  |     await page.getByRole('button', { name: 'Add habit' }).click();
+  83  |     const habitCard = page.getByRole('listitem').filter({ hasText: habitName });
+  84  |     await expect(habitCard).toBeVisible();
+  85  |     await habitCard.getByRole('button', { name: `Edit ${habitName}` }).click();
+  86  |     const nameInput = page.getByLabel(`Edit name for ${habitName}`);
+  87  |     await expect(nameInput).toHaveValue(habitName);
+  88  |     const newName = `${habitName} Updated`;
+  89  |     await nameInput.fill(newName);
+  90  |     await habitCard.getByRole('button', { name: 'Save' }).click();
+  91  |     await expect(page.getByRole('listitem').filter({ hasText: newName })).toBeVisible();
+  92  |   });
+  93  | 
+  94  |   // ──────────────────────────────────────────────────────────────────────────
+  95  |   // SECTION 4: Bulk actions
+  96  |   // ──────────────────────────────────────────────────────────────────────────
+  97  | 
+  98  |   /**
+  99  |    * TC05: Home - completes all pending habits for today
+  100 |    */
+  101 |   test('TC05 - Home - completes all pending habits for today', async ({ page }) => {
+  102 |     await page.goto('/');
+  103 |     const completeAllButton = page.getByRole('button', { name: /^Complete all for today/ });
+  104 |     await expect(completeAllButton).toBeEnabled();
+  105 |     await completeAllButton.click();
+  106 |     await expect(completeAllButton).not.toHaveText(/Completing…/, { timeout: 15000 });
+  107 |   });
+  108 | 
+  109 |   // ──────────────────────────────────────────────────────────────────────────
+  110 |   // SECTION 5: Habit list actions
+  111 |   // ──────────────────────────────────────────────────────────────────────────
+  112 | 
+  113 |   /**
+  114 |    * TC06: HabitList - skips and unskips a habit
+  115 |    */
+  116 |   test('TC06 - HabitList - skips and unskips a habit', async ({ page }) => {
+  117 |     await page.goto('/');
+  118 |     const habitName = `Skip Habit ${Date.now()}`;
+  119 |     await page.getByLabel('New habit name').fill(habitName);
+  120 |     await page.getByLabel('Habit category').selectOption('General');
+  121 |     await page.getByLabel('Times per week').selectOption('3');
+  122 |     await page.getByRole('button', { name: 'Add habit' }).click();
+  123 |     const habitCard = page.getByRole('listitem').filter({ hasText: habitName });
+  124 |     await expect(habitCard).toBeVisible();
+> 125 |     await habitCard.getByRole('button', { name: `Skip ${habitName}` }).click();
+      |                                                                        ^ Error: locator.click: Test timeout of 60000ms exceeded.
+  126 |     await expect(habitCard.getByRole('button', { name: `Skipped ${habitName}` })).toBeVisible();
+  127 |     await habitCard.getByRole('button', { name: `Unskip ${habitName}` }).click();
+  128 |     await expect(habitCard.getByRole('button', { name: `Skip ${habitName}` })).toBeVisible();
+  129 |   });
+  130 | 
+  131 |   /**
+  132 |    * TC07: HabitList - toggles archive state of a habit
+  133 |    */
+  134 |   test('TC07 - HabitList - toggles archive state of a habit', async ({ page }) => {
+  135 |     await page.goto('/');
+  136 |     const habitName = `Archive Habit ${Date.now()}`;
+  137 |     await page.getByLabel('New habit name').fill(habitName);
+  138 |     await page.getByLabel('Habit category').selectOption('General');
+  139 |     await page.getByLabel('Times per week').selectOption('3');
+  140 |     await page.getByRole('button', { name: 'Add habit' }).click();
+  141 |     const habitCard = page.getByRole('listitem').filter({ hasText: habitName });
+  142 |     await expect(habitCard).toBeVisible();
+  143 |     await habitCard.getByRole('checkbox', { name: `Archive ${habitName}` }).check();
+  144 |     await expect(page.getByRole('listitem').filter({ hasText: habitName })).toHaveCount(0);
+  145 |     await page.getByLabel('Show archived').check();
+  146 |     const archivedCard = page.getByRole('listitem').filter({ hasText: habitName });
+  147 |     await expect(archivedCard).toBeVisible();
+  148 |     await archivedCard.getByRole('checkbox', { name: `Unarchive ${habitName}` }).uncheck();
+  149 |     await expect(page.getByRole('listitem').filter({ hasText: habitName })).toBeVisible();
+  150 |   });
+  151 | 
+  152 |   /**
+  153 |    * TC08: HabitList - duplicates a habit
+  154 |    */
+  155 |   test('TC08 - HabitList - duplicates a habit', async ({ page }) => {
+  156 |     await page.goto('/');
+  157 |     const habitName = `Duplicate Habit ${Date.now()}`;
+  158 |     await page.getByRole('textbox', { name: 'New habit name' }).fill(habitName);
+  159 |     await page.getByRole('combobox', { name: 'Habit category' }).selectOption('General');
+  160 |     await page.getByRole('combobox', { name: 'Times per week' }).selectOption('3');
+  161 |     await page.getByRole('button', { name: 'Add habit' }).click();
+  162 |     const habitCard = page.getByRole('listitem').filter({ hasText: habitName });
+  163 |     await expect(habitCard).toBeVisible();
+  164 |     await habitCard.getByRole('button', { name: `Duplicate ${habitName}` }).click();
+  165 |     const duplicateCard = page.getByRole('listitem').filter({ hasText: `${habitName} (copy)` });
+  166 |     await expect(duplicateCard).toBeVisible();
+  167 |   });
+  168 | 
+  169 |   // ──────────────────────────────────────────────────────────────────────────
+  170 |   // SECTION 6: Filter and search
+  171 |   // ──────────────────────────────────────────────────────────────────────────
+  172 | 
+  173 |   /**
+  174 |    * TC09: Home - clears all filters and resets controls
+  175 |    */
+  176 |   test('TC09 - Home - clears all filters and resets controls', async ({ page }) => {
+  177 |     await page.goto('/');
+  178 |     await page.getByRole('combobox', { name: 'Filter by category' }).selectOption('General');
+  179 |     await page.getByLabel('Show archived').check();
+  180 |     await page.getByRole('textbox', { name: 'Search habits by name' }).fill('test');
+  181 |     await page.getByRole('combobox', { name: 'Sort habits by' }).selectOption('streak');
+  182 |     await page.getByRole('button', { name: 'Clear filters' }).click();
+  183 |     await expect(page.getByRole('combobox', { name: 'Filter by category' })).toHaveValue('');
+  184 |     await expect(page.getByLabel('Show archived')).not.toBeChecked();
+  185 |     await expect(page.getByRole('textbox', { name: 'Search habits by name' })).toHaveValue('');
+  186 |     await expect(page.getByRole('combobox', { name: 'Sort habits by' })).toHaveValue('name');
+  187 |   });
+  188 | 
+  189 |   // ──────────────────────────────────────────────────────────────────────────
+  190 |   // SECTION 7: Habit creation validation
+  191 |   // ──────────────────────────────────────────────────────────────────────────
+  192 | 
+  193 |   /**
+  194 |    * TC10: HabitForm - shows validation error when name is empty
+  195 |    */
+  196 |   test('TC10 - HabitForm - shows validation error when name is empty', async ({ page }) => {
+  197 |     await page.goto('/');
+  198 |     await page.getByLabel('Name').fill('');
+  199 |     await page.getByRole('button', { name: 'Add habit' }).click();
+  200 |     await expect(page.getByText('Name is required')).toBeVisible();
+  201 |   });
+  202 | 
+  203 |   // ──────────────────────────────────────────────────────────────────────────
+  204 |   // SECTION 8: Home
+  205 |   // ──────────────────────────────────────────────────────────────────────────
+  206 | 
+  207 |   /**
+  208 |    * TC11: Home - page loads with unconditional elements visible
+  209 |    */
+  210 |   test('TC11 - Home - page loads with unconditional elements visible', async ({ page }) => {
+  211 |     await page.goto('/');
+  212 |     await expect(page.getByRole('heading', { name: 'Habit Tracker' })).toBeVisible();
+  213 |     await expect(page.getByRole('textbox', { name: 'New habit name' })).toBeVisible();
+  214 |     await expect(page.getByLabel('Habit category')).toBeVisible();
+  215 |     await expect(page.getByLabel('Times per week')).toBeVisible();
+  216 |     await expect(page.getByLabel('Notes (optional)')).toBeVisible();
+  217 |     await expect(page.getByRole('button', { name: 'Add habit' })).toBeVisible();
+  218 |     await expect(page.getByRole('searchbox', { name: 'Search habits by name' })).toBeVisible();
+  219 |     await expect(page.getByRole('combobox', { name: 'Sort habits by' })).toBeVisible();
+  220 |     await expect(page.getByRole('combobox', { name: 'Filter by category' })).toBeVisible();
+  221 |     await expect(page.getByLabel('Show archived')).toBeVisible();
+  222 |     await expect(page.getByRole('link', { name: 'View stats' })).toBeVisible();
+  223 |     await expect(page.getByRole('button', { name: 'Complete all for today' })).toBeVisible();
+  224 |     await expect(page.getByRole('button', { name: 'Export JSON' })).toBeVisible();
+  225 |     await expect(page.getByRole('button', { name: 'Export CSV' })).toBeVisible();
+```
