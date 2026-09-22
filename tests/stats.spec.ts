@@ -14,7 +14,7 @@ test.describe('StatsSummary', () => {
     await page.goto('/stats');
     await expect(page.locator('h2', { hasText: 'Weekly completion' })).toBeVisible();
     await expect(page.getByRole('heading', { name: 'Habits by category', exact: true })).toBeVisible();
-    await expect(page.getByText('Habits')).toBeVisible();
+    await expect(page.getByText('Habits', { exact: true })).toBeVisible();
     await expect(page.getByText('Done today')).toBeVisible();
     await expect(page.getByText('Active streaks')).toBeVisible();
     await expect(page.getByText('Best streak')).toBeVisible();
@@ -59,7 +59,7 @@ test.describe('StatsSummary', () => {
   test('TC04 - StatsSummary - displays habits by category with bars proportional to counts', async ({ page }) => {
     await page.goto('/stats');
     const categoryItems = page.locator('ul > li.flex.items-center.gap-3.text-sm');
-    await expect(categoryItems).toHaveCountGreaterThan(0);
+    await expect(categoryItems.first()).toBeVisible();
     const firstCategoryName = await categoryItems.nth(0).locator('span.w-20').textContent();
     await expect(firstCategoryName).not.toBeNull();
     const firstCategoryBar = categoryItems.nth(0).locator('div > div.h-full.rounded-full.transition-all.duration-300');
