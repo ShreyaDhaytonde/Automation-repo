@@ -169,7 +169,7 @@ test.describe('Archive', () => {
    */
   test('TC09 - Archive page - error message appears when loading fails (non-deterministic)', async ({ page }) => {
     await page.goto('/archive');
-    await expect(page.locator('text=Could not load archived habits. Is the API running?')).toBeHidden();
+    await expect(page.getByText('Could not load archived habits. Is the API running?')).toBeHidden();
   });
 
   /**
@@ -177,7 +177,7 @@ test.describe('Archive', () => {
    */
   test('TC10 - Archive page - empty state message is shown when no habits are archived (not reachable without backend control)', async ({ page }) => {
     await page.goto('/archive');
-    await expect(page.locator('text=No archived habits — anything you archive from the home page shows up here.')).toBeHidden();
+    await expect(page.getByText('No archived habits — anything you archive from the home page shows up here.')).toBeHidden();
   });
 
 });
