@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('Archive', () => {
-  test.setTimeout(120000);
+  test.setTimeout(60000);
   test.afterEach(async ({ page }) => {
     try {
       page.on('dialog', (dialog) => dialog.accept());

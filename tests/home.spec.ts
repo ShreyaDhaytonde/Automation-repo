@@ -41,7 +41,7 @@ function habitCardLocator(page, name) {
 }
 
 test.describe('Home', () => {
-  test.setTimeout(120000);
+  test.setTimeout(60000);
   test.afterEach(async ({ page }) => {
     try {
       page.on('dialog', (dialog) => dialog.accept());
