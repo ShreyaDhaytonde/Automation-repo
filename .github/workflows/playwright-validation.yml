@@ -264,7 +264,11 @@ jobs:
     # so its total runtime keeps growing over the project's life. 20m was cut
     # too close: a real run was killed mid-suite at 20m18s, 2 tests from the
     # end, leaving no results.json for the report job to read at all.
-    timeout-minutes: 35
+    # 35m then got outgrown too: per-test timeout doubled 60s -> 120s (real
+    # runs against the live deployed app were hitting genuine network-latency
+    # timeouts), so the whole job now needs proportionally more headroom --
+    # run 35758072466 was killed at 35m36s mid-suite for exactly this reason.
+    timeout-minutes: 60
     outputs:
       tests_outcome: ${{ steps.tests.outcome }}
 
