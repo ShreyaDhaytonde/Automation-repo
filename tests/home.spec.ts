@@ -42,6 +42,21 @@ function habitCardLocator(page, name) {
 
 test.describe('Home', () => {
   test.setTimeout(120000);
+  test.afterEach(async ({ page }) => {
+    try {
+      page.on('dialog', (dialog) => dialog.accept());
+      const fixtureHabits = page.getByRole('listitem').filter({ hasText: /\d{13}/ });
+      for (let i = 0; i < 20; i++) {
+        const count = await fixtureHabits.count();
+        if (count === 0) break;
+        await fixtureHabits.first().getByRole('button', { name: /^Delete / }).click();
+        await fixtureHabits.first().waitFor({ state: 'detached' }).catch(() => {});
+      }
+    } catch {
+      // Best-effort cleanup -- never fail or flake the test that just ran
+      // over a leftover-habit sweep.
+    }
+  });
 
   // ──────────────────────────────────────────────────────────────────────────
   // SECTION 1: Page load
