@@ -6,6 +6,49 @@ function nameInput(page) {
 
 test.describe('Archive', () => {
   test.setTimeout(60000);
+  test.afterEach(async ({ page }) => {
+    try {
+      page.on('dialog', (dialog) => dialog.accept());
+      const fixtureHabits = page.getByRole('listitem').filter({ hasText: /\d{13}/ });
+      for (let i = 0; i < 20; i++) {
+        const count = await fixtureHabits.count();
+        if (count === 0) break;
+        await fixtureHabits.first().getByRole('button', { name: /^Delete / }).click();
+        await fixtureHabits.first().waitFor({ state: 'detached' }).catch(() => {});
+      }
+    } catch {
+      // Best-effort cleanup -- never fail or flake the test that just ran
+      // over a leftover-habit sweep.
+    }
+  });
+
+  // ──────────────────────────────────────────────────────────────────────────
+  // SECTION 1: HabitCard - pin toggle
+  // ──────────────────────────────────────────────────────────────────────────
+
+  /**
+   * TC01: HabitCard - toggle pin state on an archived habit card
+   */
+  test('TC01 - HabitCard - toggle pin state on an archived habit card', async ({ page }) => {
+    await page.goto('/');
+    const habitName = `Pin Test Habit ${Date.now()}`;
+    await page.getByRole('textbox', { name: 'New habit name' }).fill(habitName);
+    await page.getByRole('combobox', { name: 'Habit category' }).selectOption({ index: 0 });
+    await page.getByRole('combobox', { name: 'Times per week' }).selectOption('7');
+    await page.getByRole('button', { name: 'Add habit' }).click();
+    const homeHabitCard = page.getByRole('listitem').filter({ hasText: habitName });
+    await expect(homeHabitCard).toBeVisible();
+    await homeHabitCard.getByRole('button', { name: `Archive ${habitName}` }).click();
+    await expect(homeHabitCard).toHaveCount(0);
+    await page.goto('/archive');
+    const habitCard = page.getByRole('listitem').filter({ hasText: habitName });
+    await expect(habitCard).toBeVisible();
+    const pinButton = habitCard.getByRole('button', { name: `Pin ${habitName}` });
+    await pinButton.click();
+    await expect(habitCard.getByRole('button', { name: `Unpin ${habitName}` })).toBeVisible();
+    await habitCard.getByRole('button', { name: `Unpin ${habitName}` }).click();
+    await expect(habitCard.getByRole('button', { name: `Pin ${habitName}` })).toBeVisible();
+  });
 
   // ──────────────────────────────────────────────────────────────────────────
   // SECTION 1: Archived habit card pin toggle

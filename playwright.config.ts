@@ -2,6 +2,11 @@ import { defineConfig, devices } from '@playwright/test';
 export default defineConfig({
   testDir: './tests',
 
+  // Deletes this automation's own leftover fixture data (see global-setup.ts)
+  // before the suite runs, so the shared persistent backend doesn't just
+  // keep growing across every CI run.
+  globalSetup: './global-setup',
+
   // Every spec runs against one real, shared backend with real persisted
   // data -- no mocks, no per-test reset. Two concurrent workers can read/
   // write that same backend at the same instant, so which records exist on
