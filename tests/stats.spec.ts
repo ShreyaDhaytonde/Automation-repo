@@ -1,16 +1,89 @@
 import { test, expect } from '@playwright/test';
 
-test.describe('StatsSummary', () => {
+test.describe('Stats', () => {
   test.setTimeout(60000);
 
   // ──────────────────────────────────────────────────────────────────────────
-  // SECTION 1: Stat cards rendering
+  // SECTION 1: Stats page load
   // ──────────────────────────────────────────────────────────────────────────
 
   /**
-   * TC01: StatsSummary - renders all stat cards with correct labels and values
+   * TC01: Stats - page loads and renders unconditional elements
    */
-  test('TC01 - StatsSummary - renders all stat cards with correct labels and values', async ({ page }) => {
+  test('TC01 - Stats - page loads and renders unconditional elements', async ({ page }) => {
+    await page.goto('/stats');
+    await expect(page.getByRole('heading', { name: 'Your stats' })).toBeVisible();
+    await expect(page.getByText('How your habits are tracking overall.')).toBeVisible();
+    await expect(page.getByRole('link', { name: '← Back to habits' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Habits by priority' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Habits by category' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Weekly completion' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Your stats' })).toBeVisible();
+  });
+
+  // ──────────────────────────────────────────────────────────────────────────
+  // SECTION 2: Stats
+  // ──────────────────────────────────────────────────────────────────────────
+
+  /**
+   * TC02: StatsSummary - page loads and renders unconditional elements
+   */
+  test('TC02 - StatsSummary - page loads and renders unconditional elements', async ({ page }) => {
+    await page.goto('/stats');
+    await expect(page.getByRole('heading', { name: 'Stats' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Weekly completion' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Habits by category' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Habits by priority' })).toBeVisible();
+    await expect(page.getByText('Pinned')).toBeVisible();
+  });
+
+  /**
+   * TC03: Stats - navigates back to home page from back link
+   */
+  test('TC03 - Stats - navigates back to home page from back link', async ({ page }) => {
+    await page.goto('/stats');
+    await page.getByRole('link', { name: '← Back to habits' }).click();
+    await expect(page).toHaveURL('/');
+    await expect(page.getByRole('heading', { name: 'Habit Tracker' })).toBeVisible();
+  });
+
+  /**
+   * TC04: Stats - displays heading and description
+   */
+  test('TC04 - Stats - displays heading and description', async ({ page }) => {
+    await page.goto("/stats");
+    const heading = page.getByRole("heading", { name: "Your stats" });
+    await expect(heading).toBeVisible();
+    const description = page.getByText('How your habits are tracking overall.');
+    await expect(description).toBeVisible();
+  });
+
+  /**
+   * TC05: Stats - has navigation link back to home page
+   */
+  test('TC05 - Stats - has navigation link back to home page', async ({ page }) => {
+    await page.goto("/stats");
+    const backLink = page.getByRole("link", { name: "Back to habits" });
+    await expect(backLink).toBeVisible();
+    await backLink.click();
+    await expect(page).toHaveURL('/');
+  });
+
+  /**
+   * TC06: Stats page - initial render shows heading, description, back link, theme toggle, and logout button
+   */
+  test('TC06 - Stats page - initial render shows heading, description, back link, theme toggle, and logout button', async ({ page }) => {
+    await page.goto('/stats');
+    await expect(page.getByRole('heading', { name: 'Your stats' })).toBeVisible();
+    await expect(page.getByText('How your habits are tracking overall.')).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Back to habits' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Logout' })).toBeVisible();
+  });
+
+  /**
+   * TC07: StatsSummary - renders all stat cards with correct labels and values
+   */
+  test('TC07 - StatsSummary - renders all stat cards with correct labels and values', async ({ page }) => {
     await page.goto('/stats');
     await expect(page.locator('h2', { hasText: 'Weekly completion' })).toBeVisible();
     await expect(page.getByRole('heading', { name: 'Habits by category', exact: true })).toBeVisible();
@@ -22,26 +95,18 @@ test.describe('StatsSummary', () => {
     await expect(page.getByText('This week')).toBeVisible();
   });
 
-  // ──────────────────────────────────────────────────────────────────────────
-  // SECTION 2: Empty state
-  // ──────────────────────────────────────────────────────────────────────────
-
   /**
-   * TC02: StatsSummary - renders empty state message when no habits tracked
+   * TC08: StatsSummary - renders empty state message when no habits tracked
    */
-  test('TC02 - StatsSummary - renders empty state message when no habits tracked', async ({ page }) => {
+  test('TC08 - StatsSummary - renders empty state message when no habits tracked', async ({ page }) => {
     await page.goto('/stats');
     await expect(page.getByText('No habits tracked yet — add one on the home page and your stats will show up here.')).toBeVisible();
   });
 
-  // ──────────────────────────────────────────────────────────────────────────
-  // SECTION 3: Weekly completion display
-  // ──────────────────────────────────────────────────────────────────────────
-
   /**
-   * TC03: StatsSummary - displays weekly completion progress bar with correct percentage
+   * TC09: StatsSummary - displays weekly completion progress bar with correct percentage
    */
-  test('TC03 - StatsSummary - displays weekly completion progress bar with correct percentage', async ({ page }) => {
+  test('TC09 - StatsSummary - displays weekly completion progress bar with correct percentage', async ({ page }) => {
     await page.goto('/stats');
     const weeklyCompletionLocator = page.locator('h2', { hasText: 'Weekly completion' }).locator('xpath=following-sibling::span[contains(@class, "text-zinc-500")]');
     await expect(weeklyCompletionLocator).toHaveText(/\d+%/);
@@ -49,14 +114,10 @@ test.describe('StatsSummary', () => {
     await expect(progressBar).toBeVisible();
   });
 
-  // ──────────────────────────────────────────────────────────────────────────
-  // SECTION 4: Habits by category display
-  // ──────────────────────────────────────────────────────────────────────────
-
   /**
-   * TC04: StatsSummary - displays habits by category with bars proportional to counts
+   * TC10: StatsSummary - displays habits by category with bars proportional to counts
    */
-  test('TC04 - StatsSummary - displays habits by category with bars proportional to counts', async ({ page }) => {
+  test('TC10 - StatsSummary - displays habits by category with bars proportional to counts', async ({ page }) => {
     await page.goto('/stats');
     const categoryItems = page.locator('ul > li.flex.items-center.gap-3.text-sm');
     await expect(categoryItems.first()).toBeVisible();
@@ -66,14 +127,10 @@ test.describe('StatsSummary', () => {
     await expect(firstCategoryBar).toBeVisible();
   });
 
-  // ──────────────────────────────────────────────────────────────────────────
-  // SECTION 5: StatsSummary
-  // ──────────────────────────────────────────────────────────────────────────
-
   /**
-   * TC05: Stats - page loads and displays header and controls
+   * TC11: Stats - page loads and displays header and controls
    */
-  test('TC05 - Stats - page loads and displays header and controls', async ({ page }) => {
+  test('TC11 - Stats - page loads and displays header and controls', async ({ page }) => {
     await page.goto('/stats');
     await expect(page.getByRole('heading', { name: 'Your stats' })).toBeVisible();
     await expect(page.getByText('How your habits are tracking overall.')).toBeVisible();
@@ -84,52 +141,9 @@ test.describe('StatsSummary', () => {
   });
 
   /**
-   * TC06: Stats - navigates back to home page from back link
+   * TC12: Stats - shows loading label while loading
    */
-  test('TC06 - Stats - navigates back to home page from back link', async ({ page }) => {
-    await page.goto('/stats');
-    await page.getByRole('link', { name: '← Back to habits' }).click();
-    await expect(page).toHaveURL('/');
-    await expect(page.getByRole('heading', { name: 'Habit Tracker' })).toBeVisible();
-  });
-
-  /**
-   * TC07: Stats - displays heading and description
-   */
-  test('TC07 - Stats - displays heading and description', async ({ page }) => {
-    await page.goto("/stats");
-    const heading = page.getByRole("heading", { name: "Your stats" });
-    await expect(heading).toBeVisible();
-    const description = page.getByText('How your habits are tracking overall.');
-    await expect(description).toBeVisible();
-  });
-
-  /**
-   * TC08: Stats - has navigation link back to home page
-   */
-  test('TC08 - Stats - has navigation link back to home page', async ({ page }) => {
-    await page.goto("/stats");
-    const backLink = page.getByRole("link", { name: "Back to habits" });
-    await expect(backLink).toBeVisible();
-    await backLink.click();
-    await expect(page).toHaveURL('/');
-  });
-
-  /**
-   * TC09: Stats page - initial render shows heading, description, back link, theme toggle, and logout button
-   */
-  test('TC09 - Stats page - initial render shows heading, description, back link, theme toggle, and logout button', async ({ page }) => {
-    await page.goto('/stats');
-    await expect(page.getByRole('heading', { name: 'Your stats' })).toBeVisible();
-    await expect(page.getByText('How your habits are tracking overall.')).toBeVisible();
-    await expect(page.getByRole('link', { name: 'Back to habits' })).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Logout' })).toBeVisible();
-  });
-
-  /**
-   * TC10: Stats - shows loading label while loading
-   */
-  test('TC10 - Stats - shows loading label while loading', async ({ page }) => {
+  test('TC12 - Stats - shows loading label while loading', async ({ page }) => {
     await page.goto('/stats');
     await expect(page.getByText('Crunching your stats…')).toBeVisible();
   });
