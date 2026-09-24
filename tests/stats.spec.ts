@@ -75,6 +75,7 @@ test.describe('Stats', () => {
     await expect(page.getByRole('heading', { name: 'Habits by category', exact: true })).toBeVisible();
     await expect(page.getByText('Habits', { exact: true })).toBeVisible();
     await expect(page.getByText('Done today')).toBeVisible();
+    await expect(page.getByText('Skipped today')).toBeVisible();
     await expect(page.getByText('Active streaks')).toBeVisible();
     await expect(page.getByText('Best streak')).toBeVisible();
     await expect(page.getByText('Total completions')).toBeVisible();
