@@ -511,6 +511,7 @@ test.describe('Home', () => {
     await submitAddHabitButton(page).click();
     const card = habitCardLocator(page, habitName);
     const editButton = card.getByRole('button', { name: `Edit ${habitName}` });
+    await expect(editButton).toBeVisible();
     await editButton.click();
     const nameInput = page.getByLabel(`Edit name for ${habitName}`);
     await expect(nameInput).toHaveValue(habitName);
@@ -527,6 +528,7 @@ test.describe('Home', () => {
     const updatedCard = habitCardLocator(page, 'Updated ' + habitName);
     await expect(updatedCard).toBeVisible();
     const updatedEditButton = updatedCard.getByRole('button', { name: `Edit Updated ${habitName}` });
+    await expect(updatedEditButton).toBeVisible();
     await updatedEditButton.click();
     const updatedNameInput = page.getByLabel(`Edit name for Updated ${habitName}`);
     await updatedNameInput.fill('');
