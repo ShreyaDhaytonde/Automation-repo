@@ -16,7 +16,7 @@ test.describe('Settings', () => {
     await expect(page.getByText('Defaults used when you add a new habit.')).toBeVisible();
     await expect(page.getByRole('link', { name: '← Back to habits' })).toBeVisible();
     await expect(page.getByRole('combobox', { name: 'Default weekly target' })).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Theme toggle' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Switch to dark mode', exact: true })).toBeVisible();
     await expect(page.getByRole('button', { name: 'Logout' })).toBeVisible();
   });
 
