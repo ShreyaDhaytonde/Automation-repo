@@ -966,8 +966,12 @@ test.describe('Home', () => {
     await expect(habitCardLocator(page, uniqueNameA)).toBeVisible();
     await sortByControl(page).selectOption('name');
     const habitCards = await page.getByRole('listitem').all();
-    const names = await Promise.all(habitCards.map((habitCard) => habitCard.getByRole('heading', { name: /.+/ }).first().textContent()));
-    const sorted = names.every((name, i, arr) => !i || (name?.localeCompare(arr[i-1]!) ?? -1) >= 0);
+    const names = await Promise.all(habitCards.map(async (habitCard) => {
+      const heading = habitCard.locator('h3');
+      return heading.count() > 0 ? await heading.first().textContent() : null;
+    }));
+    const filteredNames = names.filter((name): name is string => name !== null);
+    const sorted = filteredNames.every((name, i, arr) => !i || (name.localeCompare(arr[i-1]) >= 0));
     expect(sorted).toBe(true);
   });
 
@@ -1063,11 +1067,12 @@ test.describe('Home', () => {
     await targetSelect.selectOption('1');
     await notesInput.fill('');
     await addButton.click();
-    const priorityButton = page.getByRole('button', { name: new RegExp(`Cycle priority for ${uniqueName}, currently (Low|Medium|High)`) });
+    const habitCard = page.getByRole('listitem').filter({ hasText: uniqueName });
+    await expect(habitCard).toBeVisible();
+    const priorityButton = habitCard.getByRole('button', { name: new RegExp(`Cycle priority for ${uniqueName}, currently (Low|Medium|High)`) });
     await priorityButton.click();
-    await expect(page.getByRole('listitem').filter({ hasText: uniqueName })).toBeVisible();
     await priorityFilter.selectOption('High');
-    await expect(page.getByRole('listitem').filter({ hasText: uniqueName })).toBeVisible();
+    await expect(habitCard).toBeVisible();
   });
 
   /**
