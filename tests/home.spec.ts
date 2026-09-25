@@ -68,7 +68,7 @@ test.describe('Home', () => {
     await expect(page.getByRole('combobox', { name: 'Times per week' })).toBeVisible();
     await expect(page.getByRole('textbox', { name: 'Notes (optional)' })).toBeVisible();
     await expect(page.getByRole('button', { name: 'Add habit' })).toBeVisible();
-    await expect(page.getByRole('textbox', { name: 'Search habits by name' })).toBeVisible();
+    await expect(page.getByRole('searchbox', { name: 'Search habits by name' })).toBeVisible();
     await expect(page.getByRole('combobox', { name: 'Sort habits by' })).toBeVisible();
     await expect(page.getByRole('combobox', { name: 'Filter by category' })).toBeVisible();
     await expect(page.getByRole('combobox', { name: 'Filter by priority' })).toBeVisible();
@@ -966,8 +966,8 @@ test.describe('Home', () => {
     await expect(habitCardLocator(page, uniqueNameA)).toBeVisible();
     await sortByControl(page).selectOption('name');
     const habitCards = await page.getByRole('listitem').all();
-    const texts = await Promise.all(habitCards.map((habitCard) => habitCard.textContent()));
-    const sorted = texts.every((text, i, arr) => !i || (text?.localeCompare(arr[i-1]!) ?? -1) >= 0);
+    const names = await Promise.all(habitCards.map((habitCard) => habitCard.getByRole('heading', { name: /.+/ }).first().textContent()));
+    const sorted = names.every((name, i, arr) => !i || (name?.localeCompare(arr[i-1]!) ?? -1) >= 0);
     expect(sorted).toBe(true);
   });
 
@@ -1063,6 +1063,8 @@ test.describe('Home', () => {
     await targetSelect.selectOption('1');
     await notesInput.fill('');
     await addButton.click();
+    const priorityButton = page.getByRole('button', { name: new RegExp(`Cycle priority for ${uniqueName}, currently (Low|Medium|High)`) });
+    await priorityButton.click();
     await expect(page.getByRole('listitem').filter({ hasText: uniqueName })).toBeVisible();
     await priorityFilter.selectOption('High');
     await expect(page.getByRole('listitem').filter({ hasText: uniqueName })).toBeVisible();
