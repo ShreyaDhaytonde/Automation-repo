@@ -1,0 +1,5 @@
+"DESCRIPTION","DURATION IN MS","NAME","PARENT SUITE","START TIME","STATUS","STOP TIME","SUB SUITE","SUITE","TEST CLASS","TEST METHOD"
+"","596","TC01 - Settings page - loads and displays static elements","chromium","2026-09-28","passed","2026-09-28","Settings","settings.spec.ts","",""
+"","455","TC02 - Settings page - change weekly target updates select and shows saved message","chromium","2026-09-28","passed","2026-09-28","Settings","settings.spec.ts","",""
+"","471","TC03 - Settings - page loads and renders default elements","chromium","2026-09-28","passed","2026-09-28","Settings","settings.spec.ts","",""
+"","463","TC04 - Settings - changing default weekly target saves preference and shows saved message","chromium","2026-09-28","passed","2026-09-28","Settings","settings.spec.ts","",""
